@@ -1,6 +1,15 @@
+using Deporcheves.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Deporcheves.Application.Abstractions.Persistence;
+using Deporcheves.Infrastructure.Persistence.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<DeporchevesDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Add services to the container.
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
