@@ -1,0 +1,165 @@
+# ============================================================
+# .gitignore para Deporcheves
+# Proyecto POS con .NET 8, Clean Architecture, EF Core
+# Combina plantilla oficial de GitHub (VisualStudio.gitignore)
+# con patrones especificos del proyecto.
+# ============================================================
+
+# ------------------------------------------------------------
+# .NET / Visual Studio / MSBuild
+# ------------------------------------------------------------
+# Carpetas generadas por la compilacion.
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Archivos de usuario de Visual Studio (configuracion local, no compartir).
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos de usuario de VS Code (excepto settings compartidos).
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Archivos de usuario de JetBrains Rider.
+.idea/
+*.sln.iml
+
+# ------------------------------------------------------------
+# Resultados de compilacion y publicacion
+# ------------------------------------------------------------
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Pp]ublish/
+[Oo]ut/
+publish/
+*.publishproj
+
+# ------------------------------------------------------------
+# Restauracion de NuGet
+# ------------------------------------------------------------
+# Mantener packages.lock.json si se usa (reproducibilidad).
+# Ignorar la cache local.
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ------------------------------------------------------------
+# Pruebas
+# ------------------------------------------------------------
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+[Cc]overage[Rr]eport/
+
+# ------------------------------------------------------------
+# Entity Framework Core
+# ------------------------------------------------------------
+# Migraciones NO se ignoran (deben versionarse).
+# Bases de datos locales de desarrollo.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.ndf
+
+# ------------------------------------------------------------
+# Bases de datos y secretos locales
+# ------------------------------------------------------------
+# Archivos de configuracion especifica del entorno local.
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+.env.*
+!.env.example
+
+# Certificados de desarrollo.
+*.pfx
+*.p12
+*.cer
+*.crt
+*.key
+*.pem
+secrets.json
+
+# ------------------------------------------------------------
+# Sistema operativo
+# ------------------------------------------------------------
+# Windows.
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS.
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux.
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ------------------------------------------------------------
+# Herramientas y temporales
+# ------------------------------------------------------------
+.vs/
+.vscode-test/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------
+# Ignorar volumenes de datos locales de Docker.
+docker-data/
+postgres-data/
+.env.docker
+
+# ------------------------------------------------------------
+# Documentacion generada
+# ------------------------------------------------------------
+# Ignorar salidas de DocFX si se usa mas adelante.
+_site/
