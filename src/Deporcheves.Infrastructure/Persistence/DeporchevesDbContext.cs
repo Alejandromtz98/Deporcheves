@@ -16,6 +16,10 @@ public class DeporchevesDbContext : DbContext
 
     public DbSet<Product> Products => Set<Product>();
 
+    public DbSet<Sale> Sales => Set<Sale>();
+
+    public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
