@@ -1,0 +1,36 @@
+@model IEnumerable<Deporcheves.Domain.Entities.Product>
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<h1>Productos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo producto</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Stock minimo</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr class="@(product.IsBelowMinimumStock() ? "table-warning" : "")">
+                <td>@product.Sku</td>
+                <td>@product.Name</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>@product.Stock</td>
+                <td>@product.MinimumStock</td>
+                <td>@(product.IsActive ? "Activo" : "Inactivo")</td>
+            </tr>
+        }
+    </tbody>
+</table>

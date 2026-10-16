@@ -1,0 +1,98 @@
+@model Deporcheves.Web.Models.PosViewModel
+@{
+    ViewData["Title"] = "Venta";
+}
+
+<h1>Punto de venta</h1>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+<div class="row">
+    <div class="col-md-7">
+        <h4>Productos</h4>
+        <form asp-action="Index" method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Buscar por nombre o SKU..." />
+                <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+                }
+            </div>
+        </form>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Stock</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.Sku</td>
+                        <td>@product.Name</td>
+                        <td>@product.Price.ToString("C")</td>
+                        <td>@product.Stock</td>
+                        <td>
+                            <form asp-action="AddItem" method="post" class="d-flex gap-1">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <input type="number" name="quantity" value="1" min="1" max="@product.Stock" class="form-control form-control-sm" style="width:70px;" />
+                                <button type="submit" class="btn btn-sm btn-primary">Agregar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-5">
+        <h4>Ticket</h4>
+        @if (Model.Cart.Count == 0)
+        {
+            <p class="text-muted">Sin productos.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Cart)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Subtotal.ToString("C")</td>
+                            <td>
+                                <form asp-action="RemoveItem" method="post">
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">X</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-end">Total:</th>
+                        <th>@Model.CartTotal.ToString("C")</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <form asp-action="Confirm" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Metodo de pago</label>
+                    <select name="paymentMethod" class="form-select" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.PaymentMethod>()"></select>
+                </div>
+                <button type="submit" class="btn btn-success">Confirmar venta</button>
+                <button type="submit" asp-action="ClearCart" class="btn btn-outline-secondary">Cancelar ticket</button>
+            </form>
+        }
+    </div>
+</div>

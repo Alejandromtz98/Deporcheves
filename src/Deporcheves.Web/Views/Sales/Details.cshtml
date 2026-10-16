@@ -1,0 +1,35 @@
+@model Deporcheves.Application.Dtos.Sales.SaleDto
+@{
+    ViewData["Title"] = $"Venta {Model.SaleNumber}";
+}
+
+<h1>Venta @Model.SaleNumber</h1>
+<p>
+    <strong>Fecha:</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")<br />
+    <strong>Metodo de pago:</strong> @Model.PaymentMethod
+</p>
+
+<table class="table">
+    <thead>
+        <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Quantity</td>
+                <td>@item.UnitPrice.ToString("C")</td>
+                <td>@item.Subtotal.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="3" class="text-end">Total:</th>
+            <th>@Model.Total.ToString("C")</th>
+        </tr>
+    </tfoot>
+</table>
+
+<a asp-action="Daily" class="btn btn-secondary">Volver al listado</a>

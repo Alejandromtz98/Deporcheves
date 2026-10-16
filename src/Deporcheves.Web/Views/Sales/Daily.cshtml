@@ -1,0 +1,32 @@
+@model IReadOnlyList<Deporcheves.Application.Dtos.Sales.SaleDto>
+@{
+    ViewData["Title"] = "Ventas del dia";
+}
+
+<h1>Ventas del dia</h1>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">No hay ventas registradas hoy.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Numero</th><th>Hora</th><th>Metodo</th><th>Total</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var sale in Model)
+            {
+                <tr>
+                    <td>@sale.SaleNumber</td>
+                    <td>@sale.CreatedAt.ToLocalTime().ToString("HH:mm")</td>
+                    <td>@sale.PaymentMethod</td>
+                    <td>@sale.Total.ToString("C")</td>
+                    <td><a asp-action="Details" asp-route-id="@sale.Id">Detalle</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p><strong>Total del dia:</strong> @Model.Sum(s => s.Total).ToString("C")</p>
+}
