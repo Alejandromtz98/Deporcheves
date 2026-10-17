@@ -14,6 +14,10 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ISaleRepository, SaleRepository>();
 builder.Services.AddScoped<ISaleService, SaleService>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
