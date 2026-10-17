@@ -56,4 +56,11 @@ public class SaleRepository : ISaleRepository
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }
+    public async Task<IReadOnlyList<Sale>> GetByCashSessionIdAsync(int cashSessionId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Sales
+            .AsNoTracking()
+            .Where(s => s.CashSessionId == cashSessionId)
+            .ToListAsync(cancellationToken);
+    }
 }

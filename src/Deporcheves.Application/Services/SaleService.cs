@@ -8,11 +8,13 @@ public class SaleService : ISaleService
 {
     private readonly ISaleRepository _saleRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ICashSessionRepository  _cashSessionRepository;
 
-    public SaleService(ISaleRepository saleRepository, IProductRepository productRepository)
+    public SaleService(ISaleRepository saleRepository, IProductRepository productRepository, ICashSessionRepository cashSessionRepository)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
+        _cashSessionRepository = cashSessionRepository;
     }
 
     public async Task<SaleDto> RegisterSaleAsync(CreateSaleRequest request, CancellationToken cancellationToken = default)
@@ -23,11 +25,15 @@ public class SaleService : ISaleService
         var nowUtc = DateTime.UtcNow;
         var saleNumber = await GenerateSaleNumberAsync(nowUtc, cancellationToken);
 
+        var activeSession = await _cashSessionRepository.GetActiveSessionAsync(cancellationToken)
+            ?? throw new InvalidOperationException("Debe abrir la caja antes de registrar ventas.");
+
         var sale = new Sale
         {
             SaleNumber = saleNumber,
             CreatedAt = nowUtc,
-            PaymentMethod = request.PaymentMethod
+            PaymentMethod = request.PaymentMethod,
+            CashSessionId = activeSession.Id
         };
 
         foreach (var itemRequest in request.Items)

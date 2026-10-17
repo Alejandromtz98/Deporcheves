@@ -34,4 +34,5 @@ public interface ISaleRepository
     /// Persiste todos los cambios pendientes.
     /// </summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Sale>> GetByCashSessionIdAsync(int cashSessionId, CancellationToken cancellationToken = default);
 }

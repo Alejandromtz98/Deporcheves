@@ -18,6 +18,8 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IPurchaseRepository, PurchaseRepository>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<ICashSessionRepository, CashSessionRepository>();
+builder.Services.AddScoped<ICashService, CashService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
