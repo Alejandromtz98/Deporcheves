@@ -11,4 +11,5 @@ public class PosViewModel
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     public string? ErrorMessage { get; set; }
     public string? SearchTerm { get; set; }
+    public int LowStockCount => Products.Count(p => p.IsBelowMinimumStock());
 }

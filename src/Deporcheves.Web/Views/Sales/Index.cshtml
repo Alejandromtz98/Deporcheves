@@ -9,6 +9,13 @@
 {
     <div class="alert alert-danger">@Model.ErrorMessage</div>
 }
+@if (Model.LowStockCount > 0)
+{
+    <div class="alert alert-warning">
+        Hay @Model.LowStockCount producto(s) con stock bajo el minimo.
+        <a asp-controller="Products" asp-action="Index" class="alert-link">Revisar productos</a>
+    </div>
+}
 
 <div class="row">
     <div class="col-md-7">
@@ -30,7 +37,7 @@
             <tbody>
                 @foreach (var product in Model.Products)
                 {
-                    <tr>
+                    <tr class="@(product.IsBelowMinimumStock() ? "table-warning" : "")">
                         <td>@product.Sku</td>
                         <td>@product.Name</td>
                         <td>@product.Price.ToString("C")</td>

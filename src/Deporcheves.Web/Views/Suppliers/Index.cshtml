@@ -1,0 +1,21 @@
+@model IReadOnlyList<Deporcheves.Application.Dtos.Suppliers.SupplierDto>
+@{ ViewData["Title"] = "Proveedores"; }
+
+<h1>Proveedores</h1>
+<p><a asp-action="Create" class="btn btn-primary">Nuevo proveedor</a></p>
+
+<table class="table table-striped">
+    <thead><tr><th>Nombre</th><th>Contacto</th><th>Telefono</th><th>Correo</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var s in Model)
+    {
+        <tr>
+            <td>@s.Name</td>
+            <td>@s.ContactName</td>
+            <td>@s.Phone</td>
+            <td>@s.Email</td>
+            <td><a asp-action="Edit" asp-route-id="@s.Id">Editar</a></td>
+        </tr>
+    }
+    </tbody>
+</table>
