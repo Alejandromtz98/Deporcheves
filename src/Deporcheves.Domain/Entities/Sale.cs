@@ -25,6 +25,9 @@ public class Sale
     public decimal Total { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
+    // FK al turno de caja. Nullable para no romper ventas de prueba anteriores.
+    public int? CashSessionId { get; set; }
+    public CashSession? CashSession { get; set; }
 
     private readonly List<SaleItem> _items = new();
 

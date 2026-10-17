@@ -39,5 +39,9 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 
         builder.Navigation(s => s.Items)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.HasOne(s => s.CashSession)
+            .WithMany()
+            .HasForeignKey(s => s.CashSessionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
