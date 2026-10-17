@@ -1,0 +1,44 @@
+@model Deporcheves.Application.Dtos.Cash.CashReportDto
+@{ ViewData["Title"] = "Ticket de Cierre Z"; }
+
+<div class="text-center mb-4">
+    <h2>Turno Cerrado Correctamente</h2>
+    <p class="text-muted">ID de Turno: @Model.SessionId</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4 font-monospace">
+                <h4 class="text-center mb-3">CORTE Z</h4>
+                <p>Apertura: @Model.OpenedAt.ToLocalTime().ToString("g")<br />
+                   Cierre: @Model.ClosedAt?.ToLocalTime().ToString("g")</p>
+                <hr />
+                <div class="d-flex justify-content-between"><span>Fondo Inicial:</span> <span>@Model.OpeningCash.ToString("C")</span></div>
+                <div class="d-flex justify-content-between"><span>Ventas Efectivo:</span> <span>@Model.CashSales.ToString("C")</span></div>
+                <div class="d-flex justify-content-between"><span>Gastos:</span> <span>-@Model.TotalExpenses.ToString("C")</span></div>
+                <div class="d-flex justify-content-between"><span>Retiros:</span> <span>-@Model.TotalWithdrawals.ToString("C")</span></div>
+                <hr />
+                <div class="d-flex justify-content-between fw-bold"><span>Efectivo Esperado:</span> <span>@Model.ExpectedCash.ToString("C")</span></div>
+                <div class="d-flex justify-content-between fw-bold"><span>Efectivo Contado:</span> <span>@Model.ClosingCash?.ToString("C")</span></div>
+                <hr />
+                @if (Model.Difference == 0)
+                {
+                    <h5 class="text-center text-success">CUADRADO PERFECTO</h5>
+                }
+                else if (Model.Difference < 0)
+                {
+                    <h5 class="text-center text-danger">FALTANTE: @Model.Difference?.ToString("C")</h5>
+                }
+                else
+                {
+                    <h5 class="text-center text-warning">SOBRANTE: @Model.Difference?.ToString("C")</h5>
+                }
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a asp-action="Index" class="btn btn-primary">Volver a Caja</a>
+            <button onclick="window.print()" class="btn btn-secondary">Imprimir Ticket</button>
+        </div>
+    </div>
+</div>

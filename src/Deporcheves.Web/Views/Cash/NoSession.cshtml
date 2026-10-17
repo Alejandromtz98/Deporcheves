@@ -1,0 +1,20 @@
+@model Deporcheves.Web.Models.OpenCashViewModel
+@{ ViewData["Title"] = "Caja Cerrada"; }
+
+<div class="text-center mt-5">
+    <h2>Caja Cerrada</h2>
+    <p class="text-muted">Debes abrir un turno para comenzar a vender.</p>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-4">
+            <form asp-action="Open" method="post" class="card card-body shadow-sm">
+                <div class="mb-3 text-start">
+                    <label asp-for="OpeningCash" class="form-label fw-bold"></label>
+                    <input asp-for="OpeningCash" class="form-control form-control-lg" type="number" step="0.01" value="0" />
+                    <span asp-validation-for="OpeningCash" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100">Abrir Caja</button>
+            </form>
+        </div>
+    </div>
+</div>

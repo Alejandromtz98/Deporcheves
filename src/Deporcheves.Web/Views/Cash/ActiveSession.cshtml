@@ -1,0 +1,82 @@
+@model Deporcheves.Application.Dtos.Cash.CashReportDto
+@{ ViewData["Title"] = "Corte de Caja"; }
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Turno Abierto</h2>
+    <h5 class="text-muted">Abierto: @Model.OpenedAt.ToLocalTime().ToString("g")</h5>
+</div>
+
+<div class="row">
+    <!-- Reporte X (Parcial) -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Reporte X (Cierre Parcial)</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr><td>Fondo Inicial:</td><td class="text-end">@Model.OpeningCash.ToString("C")</td></tr>
+                    <tr><td>(+) Ventas Efectivo:</td><td class="text-end text-success">@Model.CashSales.ToString("C")</td></tr>
+                    <tr><td>(-) Gastos:</td><td class="text-end text-danger">-@Model.TotalExpenses.ToString("C")</td></tr>
+                    <tr><td>(-) Retiros:</td><td class="text-end text-danger">-@Model.TotalWithdrawals.ToString("C")</td></tr>
+                    <tr class="border-top border-dark fs-5 fw-bold">
+                        <td>Efectivo Esperado:</td>
+                        <td class="text-end">@Model.ExpectedCash.ToString("C")</td>
+                    </tr>
+                </table>
+                
+                <hr />
+                <h6 class="text-muted">Otros metodos de pago (No entran a caja):</h6>
+                <small class="d-block">Tarjeta: @Model.CardSales.ToString("C")</small>
+                <small class="d-block">Transferencia: @Model.TransferSales.ToString("C")</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <!-- Registrar Movimiento -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">Registrar Gasto / Retiro</div>
+            <div class="card-body">
+                <form asp-action="AddMovement" method="post" class="row g-2">
+                    <div class="col-md-4">
+                        <select name="Type" class="form-select" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.CashMovementType>()"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" name="Amount" step="0.01" min="0.01" class="form-control" placeholder="Monto" required />
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="Reason" class="form-control" placeholder="Motivo" required />
+                    </div>
+                    <div class="col-12 text-end mt-2">
+                        <button type="submit" class="btn btn-warning btn-sm">Registrar Movimiento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cierre Z -->
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">Cierre Z (Cerrar Turno)</div>
+            <div class="card-body">
+                <p class="text-muted small">Esta accion cerrara el turno permanentemente. Ingresa el dinero fisico que hay en la caja.</p>
+                <form asp-action="Close" method="post" onsubmit="return confirm('Estas seguro de cerrar el turno? Esta accion es irreversible.');">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="ClosingCash" step="0.01" min="0" class="form-control" placeholder="Efectivo Contado" required />
+                        <button type="submit" class="btn btn-danger">Cerrar Turno</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
