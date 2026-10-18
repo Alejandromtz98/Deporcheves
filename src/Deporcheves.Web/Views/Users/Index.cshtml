@@ -1,0 +1,19 @@
+@model IReadOnlyList<Deporcheves.Domain.Entities.User>
+@{ ViewData["Title"] = "Usuarios"; }
+
+<h1>Usuarios del Sistema</h1>
+<p><a asp-action="Create" class="btn btn-primary">Nuevo Usuario</a></p>
+
+<table class="table table-striped">
+    <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead>
+    <tbody>
+    @foreach (var u in Model)
+    {
+        <tr>
+            <td>@u.Username</td>
+            <td>@u.Role</td>
+            <td>@(u.IsActive ? "Activo" : "Inactivo")</td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -5,6 +5,7 @@ using Deporcheves.Application.Services;
 using Deporcheves.Domain.Enums;
 using Deporcheves.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Deporcheves.Web.Controllers;
 
@@ -88,6 +89,10 @@ public class SalesController : Controller
         if (cart.Count == 0)
             return View("Index", await BuildPosViewModelAsync("El ticket esta vacio.", cancellationToken));
 
+        var userIdstring = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(string.IsNullOrEmpty(userIdstring) || !int.TryParse(userIdstring, out var userId))
+            return View("Index", await BuildPosViewModelAsync("Error en la sesion del usuario", cancellationToken));
+
         var request = new CreateSaleRequest
         {
             PaymentMethod = paymentMethod,
@@ -100,7 +105,7 @@ public class SalesController : Controller
 
         try
         {
-            var sale = await _saleService.RegisterSaleAsync(request, cancellationToken);
+            var sale = await _saleService.RegisterSaleAsync(request, userId, cancellationToken);
             SaveCart(new List<CartItemViewModel>());
             return RedirectToAction(nameof(Details), new { id = sale.Id });
         }

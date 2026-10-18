@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Deporcheves.Application.Dtos.Cash;
 using Deporcheves.Application.Services;
 using Deporcheves.Web.Models;
@@ -35,9 +36,13 @@ public class CashController : Controller
     {
         if (!ModelState.IsValid) return View("NoSession", model);
 
+        var userIdstring = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if(string.IsNullOrEmpty(userIdstring) || !int.TryParse(userIdstring, out var userId))
+            return View("NoSession", model);
+
         try
         {
-            await _cashService.OpenSessionAsync(model.OpeningCash, cancellationToken);
+            await _cashService.OpenSessionAsync(model.OpeningCash, userId, cancellationToken);
             return RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)

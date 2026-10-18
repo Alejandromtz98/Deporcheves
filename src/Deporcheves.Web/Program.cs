@@ -3,6 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Deporcheves.Application.Abstractions.Persistence;
 using Deporcheves.Infrastructure.Persistence.Repositories;
 using Deporcheves.Application.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Deporcheves.Application.Abstractions.Security;
+using Deporcheves.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +25,28 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<ICashSessionRepository, CashSessionRepository>();
 builder.Services.AddScoped<ICashService, CashService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(12); // Turno de 12 horas
+    });
+
+builder.Services.AddControllersWithViews(options =>
+{
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -39,13 +66,25 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DeporchevesDbContext>();
+    // Asegura que la base de datos esté creada/aplicada
+    context.Database.Migrate(); 
+    // Ejecuta el seed
+    await DbSeeder.SeedAsync(context);
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseSession();
-app.UseRouting();
+app.UseRouting(); // 1. Primero enrutamiento
 
-app.UseAuthorization();
+app.UseAuthentication(); // 2. Luego autenticación (quién eres)
+app.UseAuthorization();  // 3. Luego autorización (qué puedes hacer)
+
+app.UseSession(); // La sesión puede ir aquí o antes de UseRouting
 
 app.MapControllerRoute(
     name: "default",

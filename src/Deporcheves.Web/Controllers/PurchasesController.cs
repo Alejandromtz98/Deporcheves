@@ -4,9 +4,11 @@ using Deporcheves.Application.Dtos.Purchases;
 using Deporcheves.Application.Services;
 using Deporcheves.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Deporcheves.Web.Controllers;
 
+[Authorize(Roles = "Admin")]
 public class PurchasesController : Controller
 {
     private const string SupplierSessionKey = "PurchaseCart.SupplierId";

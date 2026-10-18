@@ -1,0 +1,31 @@
+@model Deporcheves.Web.Models.UserFormViewModel
+@{ ViewData["Title"] = "Nuevo Usuario"; }
+
+<h1>Nuevo Usuario</h1>
+<div class="row"><div class="col-md-5">
+    <form asp-action="Create" method="post" class="card card-body shadow-sm">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Role" class="form-label"></label>
+            <select asp-for="Role" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.UserRole>()" class="form-select"></select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Crear</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div></div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

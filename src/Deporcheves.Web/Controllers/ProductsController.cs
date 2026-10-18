@@ -2,9 +2,11 @@ using Deporcheves.Application.Abstractions.Persistence;
 using Deporcheves.Domain.Entities;
 using Deporcheves.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Deporcheves.Web.Controllers;
 
+[Authorize(Roles = "Admin")]
 public class ProductsController : Controller
 {
     private readonly IProductRepository _productRepository;

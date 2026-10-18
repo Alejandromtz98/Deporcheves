@@ -2,9 +2,11 @@ using Deporcheves.Application.Dtos.Suppliers;
 using Deporcheves.Application.Services;
 using Deporcheves.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Deporcheves.Web.Controllers;
 
+[Authorize(Roles = "Admin")]
 public class SuppliersController : Controller
 {
     private readonly ISupplierService _supplierService;
