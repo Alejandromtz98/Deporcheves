@@ -28,6 +28,9 @@ public class Sale
     // FK al turno de caja. Nullable para no romper ventas de prueba anteriores.
     public int? CashSessionId { get; set; }
     public CashSession? CashSession { get; set; }
+    // FK al usuario que registro la venta.
+    public int? UserId { get; set; }
+    public User? User { get; set; }
 
     private readonly List<SaleItem> _items = new();
 

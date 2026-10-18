@@ -71,7 +71,12 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("OpeningCash")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("CashSessions", (string)null);
                 });
@@ -220,12 +225,17 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CashSessionId");
 
                     b.HasIndex("SaleNumber")
                         .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Sales", (string)null);
                 });
@@ -309,6 +319,39 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                     b.ToTable("Suppliers", (string)null);
                 });
 
+            modelBuilder.Entity("Deporcheves.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
+                });
+
             modelBuilder.Entity("Deporcheves.Domain.Entities.CashMovement", b =>
                 {
                     b.HasOne("Deporcheves.Domain.Entities.CashSession", "CashSession")
@@ -318,6 +361,16 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("CashSession");
+                });
+
+            modelBuilder.Entity("Deporcheves.Domain.Entities.CashSession", b =>
+                {
+                    b.HasOne("Deporcheves.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Deporcheves.Domain.Entities.Purchase", b =>
@@ -355,7 +408,14 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CashSessionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Deporcheves.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CashSession");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Deporcheves.Domain.Entities.SaleItem", b =>
