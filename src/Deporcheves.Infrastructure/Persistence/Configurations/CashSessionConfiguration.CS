@@ -19,6 +19,11 @@ public class CashSessionConfiguration : IEntityTypeConfiguration<CashSession>
 
         builder.Ignore(c => c.IsClosed); // Calculado en memoria
 
+        builder.HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(c => c.Movements)
             .WithOne(m => m.CashSession)
             .HasForeignKey(m => m.CashSessionId)

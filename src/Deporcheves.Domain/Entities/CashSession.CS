@@ -14,6 +14,9 @@ public class CashSession
     public decimal? ExpectedCash { get; set; }
     public decimal? ClosingCash { get; set; }
     public decimal? Difference { get; set; }
+    // FK al usuario que abrio el turno.
+    public int? UserId { get; set; }
+    public User? User { get; set; }
 
     public bool IsClosed => ClosedAt.HasValue;
 
