@@ -16,7 +16,7 @@ public class CashService : ICashService
         _saleRepository = saleRepository;
     }
 
-    public async Task<CashReportDto> OpenSessionAsync(decimal openingCash, CancellationToken cancellationToken = default)
+    public async Task<CashReportDto> OpenSessionAsync(decimal openingCash, int userId, CancellationToken cancellationToken = default)
     {
         var active = await _cashRepository.GetActiveSessionAsync(cancellationToken);
         if (active != null)
@@ -25,7 +25,7 @@ public class CashService : ICashService
         if (openingCash < 0)
             throw new InvalidOperationException("El fondo inicial no puede ser negativo.");
 
-        var session = new CashSession { OpeningCash = openingCash };
+        var session = new CashSession { OpeningCash = openingCash, UserId = userId };
         await _cashRepository.AddAsync(session, cancellationToken);
         await _cashRepository.SaveChangesAsync(cancellationToken);
 

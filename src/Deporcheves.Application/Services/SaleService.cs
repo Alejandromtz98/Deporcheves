@@ -17,7 +17,7 @@ public class SaleService : ISaleService
         _cashSessionRepository = cashSessionRepository;
     }
 
-    public async Task<SaleDto> RegisterSaleAsync(CreateSaleRequest request, CancellationToken cancellationToken = default)
+    public async Task<SaleDto> RegisterSaleAsync(CreateSaleRequest request, int userId, CancellationToken cancellationToken = default)
     {
         if (request.Items is null || request.Items.Count == 0)
             throw new InvalidOperationException("La venta debe contener al menos un item.");
@@ -33,7 +33,8 @@ public class SaleService : ISaleService
             SaleNumber = saleNumber,
             CreatedAt = nowUtc,
             PaymentMethod = request.PaymentMethod,
-            CashSessionId = activeSession.Id
+            CashSessionId = activeSession.Id,
+            UserId = userId
         };
 
         foreach (var itemRequest in request.Items)

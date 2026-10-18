@@ -8,7 +8,7 @@ public interface ISaleService
     /// Registra una venta. Valida productos, decrementa stock y persiste.
     /// Devuelve el DTO de la venta registrada.
     /// </summary>
-    Task<SaleDto> RegisterSaleAsync(CreateSaleRequest request, CancellationToken cancellationToken = default);
+    Task<SaleDto> RegisterSaleAsync(CreateSaleRequest request, int userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Devuelve las ventas de un dia especifico (en UTC).
