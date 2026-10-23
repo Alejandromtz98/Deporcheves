@@ -8,11 +8,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Deporcheves.Application.Abstractions.Security;
 using Deporcheves.Infrastructure.Security;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Configuracion Docker
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://+:{port}");
+
 builder.Services.AddDbContext<DeporchevesDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    //Sqlite
+    //options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnectionSqlite"))
+    //Postgress
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnectionPostgress"))
+    );
 
 // Add services to the container.
 builder.Services.AddScoped<IProductRepository, ProductRepository>();

@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: deporcheves-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: deporcheves
+    ports:
+      - "5432:5432" # Opcional: expone el puerto para poder conectarte con herramientas externas (pgAdmin, DBeaver)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d deporcheves"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deporcheves-web
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy # Espera a que Postgres esté listo
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # ¡Clave! Usamos el nombre del servicio 'db' como host, no 'localhost'.
+      - ConnectionStrings__DefaultConnectionPostgress=Host=db;Port=5432;Database=deporcheves;Username=postgres;Password=postgres
+
+volumes:
+  pgdata:
