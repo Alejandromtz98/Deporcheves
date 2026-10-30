@@ -1,14 +1,33 @@
 @model Deporcheves.Application.Dtos.Finance.FinancialDashboardDto
 @{ ViewData["Title"] = "Dashboard Financiero"; }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Dashboard Financiero</h2>
-    <div class="d-flex gap-2">
+@{
+    // Calcular fechas para atajos
+    var today = DateTime.Today;
+    // Asumiendo que la semana empieza en Lunes
+    var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+    var thisWeekStart = today.AddDays(-1 * diff);
+    var lastWeekStart = thisWeekStart.AddDays(-7);
+    var lastWeekEnd = thisWeekStart.AddDays(-1);
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="mb-1">Dashboard Financiero</h2>
+        <div class="btn-group btn-group-sm">
+            <a asp-action="Dashboard" asp-route-startDate="@thisWeekStart.ToString("yyyy-MM-dd")" asp-route-endDate="@today.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">Esta Semana</a>
+            <a asp-action="Dashboard" asp-route-startDate="@lastWeekStart.ToString("yyyy-MM-dd")" asp-route-endDate="@lastWeekEnd.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">Semana Pasada</a>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2 align-items-center">
         <a asp-action="FixedCosts" class="btn btn-outline-primary btn-sm">Gestionar Costos Fijos</a>
-        <form method="get" class="d-flex gap-2 align-items-center bg-light p-2 rounded shadow-sm">
-            <label class="fw-bold mb-0">Desde:</label>
+        <a asp-action="ExportCsv" asp-route-startDate="@ViewData["StartDate"]" asp-route-endDate="@ViewData["EndDate"]" class="btn btn-success btn-sm">Exportar CSV</a>
+        
+        <form method="get" class="d-flex gap-2 align-items-center bg-light p-2 rounded shadow-sm mb-0">
+            <label class="fw-bold mb-0 text-nowrap">Desde:</label>
             <input type="date" name="startDate" value="@ViewData["StartDate"]" class="form-control form-control-sm" />
-            <label class="fw-bold mb-0">Hasta:</label>
+            <label class="fw-bold mb-0 text-nowrap">Hasta:</label>
             <input type="date" name="endDate" value="@ViewData["EndDate"]" class="form-control form-control-sm" />
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
         </form>
