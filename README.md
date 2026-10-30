@@ -29,6 +29,8 @@ El proyecto sigue los principios de **Clean Architecture** simplificada, dividid
 - **Autenticación y Roles**: Login con cookies y hash BCrypt. Roles de Administrador (acceso total) y Cajero (solo ventas y caja).
 - **Alertas de Stock**: Indicadores visuales en el POS cuando un producto está por debajo del stock mínimo.
 
+- **Módulo Financiero y BI**: Dashboard interactivo con KPIs (Key Performance Indicators), cálculo de Estado de Resultados (P&L), Punto de Equilibrio (Break-Even) basado en Costos Fijos, y sugerencia de Retiro Seguro de ganancias (Free Cash Flow).
+
 ## Cómo ejecutar el proyecto localmente
 
 ### Prerrequisitos
@@ -40,3 +42,7 @@ El proyecto sigue los principios de **Clean Architecture** simplificada, dividid
 1. Clona el repositorio:
    ```bash
    git clone https://github.com/Alejandromtz98/Deporcheves.git
+
+### Comandos para levantar el proyecto
+   -docker compose up -d db
+   -dotnet run --project src/Deporcheves.Web

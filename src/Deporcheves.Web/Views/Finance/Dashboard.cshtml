@@ -1,0 +1,170 @@
+@model Deporcheves.Application.Dtos.Finance.FinancialDashboardDto
+@{ ViewData["Title"] = "Dashboard Financiero"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dashboard Financiero</h2>
+    <div class="d-flex gap-2">
+        <a asp-action="FixedCosts" class="btn btn-outline-primary btn-sm">Gestionar Costos Fijos</a>
+        <form method="get" class="d-flex gap-2 align-items-center bg-light p-2 rounded shadow-sm">
+            <label class="fw-bold mb-0">Desde:</label>
+            <input type="date" name="startDate" value="@ViewData["StartDate"]" class="form-control form-control-sm" />
+            <label class="fw-bold mb-0">Hasta:</label>
+            <input type="date" name="endDate" value="@ViewData["EndDate"]" class="form-control form-control-sm" />
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Tarjetas de KPIs Principales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-success text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Utilidad Neta</h6>
+                <h2 class="mb-0">@Model.NetProfit.ToString("C")</h2>
+                <small>Margen: @Model.GrossMarginPercentage.ToString("N1")%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-primary text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Punto de Equilibrio (Mensual)</h6>
+                <h2 class="mb-0">@Model.BreakEvenPoint.ToString("C")</h2>
+                <small>Costos Fijos: @Model.MonthlyFixedCosts.ToString("C")</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-warning text-dark h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Retiro Seguro Sugerido</h6>
+                <h2 class="mb-0">@Model.SafeWithdrawal.ToString("C")</h2>
+                <small>Libre de deudas e inventario</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-info text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Valor del Inventario</h6>
+                <h2 class="mb-0">@Model.InventoryValue.ToString("C")</h2>
+                <small>Capital atrapado en stock</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gráfico de Ingresos vs Costos -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">
+                Flujo Financiero del Periodo
+            </div>
+            <div class="card-body">
+                <canvas id="financialChart" style="max-height: 400px;"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Desglose en Tabla -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white">
+                Estado de Resultados
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <tbody>
+                        <tr>
+                            <td>Ingresos Totales</td>
+                            <td class="text-end text-success fw-bold">@Model.TotalRevenue.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td>(-) Costo de Ventas (COGS)</td>
+                            <td class="text-end text-danger">-@Model.TotalCogs.ToString("C")</td>
+                        </tr>
+                        <tr class="table-active fw-bold">
+                            <td>= Utilidad Bruta</td>
+                            <td class="text-end">@Model.GrossProfit.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td>(-) Gastos Operativos (OPEX)</td>
+                            <td class="text-end text-danger">-@Model.TotalOpex.ToString("C")</td>
+                        </tr>
+                        <tr class="table-dark fw-bold">
+                            <td>= Utilidad Neta</td>
+                            <td class="text-end">@Model.NetProfit.ToString("C")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Cargar Chart.js desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('financialChart').getContext('2d');
+            
+            // Datos inyectados desde Razor
+            const revenue = @Html.Raw(Model.TotalRevenue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+            const cogs = @Html.Raw(Model.TotalCogs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+            const opex = @Html.Raw(Model.TotalOpex.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+            const netProfit = @Html.Raw(Model.NetProfit.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'COGS', 'OPEX', 'Utilidad Neta'],
+                    datasets: [{
+                        label: 'Monto ($)',
+                        data: [revenue, cogs, opex, netProfit],
+                        backgroundColor: [
+                            'rgba(25, 135, 84, 0.8)',  // Verde (Ingresos)
+                            'rgba(220, 53, 69, 0.8)',  // Rojo (COGS)
+                            'rgba(255, 193, 7, 0.8)',  // Amarillo (OPEX)
+                            'rgba(13, 110, 253, 0.8)'  // Azul (Utilidad)
+                        ],
+                        borderColor: [
+                            'rgba(25, 135, 84, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(13, 110, 253, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
