@@ -39,6 +39,8 @@ public interface IProductRepository
     /// </summary>
     Task AddAsync(Product product, CancellationToken cancellationToken = default);
 
+    Task<decimal> GetTotalInventoryValueAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Marca un producto existente como modificado.
     /// </summary>

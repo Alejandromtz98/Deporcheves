@@ -24,6 +24,14 @@ public class CashSessionRepository : ICashSessionRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
+    public async Task<IReadOnlyList<CashSession>> GetSessionsByDateRangeAsync(DateTime start, DateTime end, CancellationToken cancellationToken = default)
+    {
+        return await _context.CashSessions
+            .Include(c => c.Movements)
+            .AsNoTracking()
+            .Where(c => c.OpenedAt >= start && c.OpenedAt < end)
+            .ToListAsync(cancellationToken);
+    }
 
     public async Task AddAsync(CashSession session, CancellationToken cancellationToken = default)
     {

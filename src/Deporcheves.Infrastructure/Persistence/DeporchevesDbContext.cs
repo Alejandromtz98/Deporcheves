@@ -24,6 +24,9 @@ public class DeporchevesDbContext : DbContext
     public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
     public DbSet<CashSession> CashSessions => Set<CashSession>();
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
+    public DbSet<FixedCost> FixedCosts => Set<FixedCost>();
+    public DbSet<FinancialSnapshot> FinancialSnapshots => Set<FinancialSnapshot>();
+    
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

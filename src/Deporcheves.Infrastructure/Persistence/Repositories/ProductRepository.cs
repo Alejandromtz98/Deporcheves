@@ -61,6 +61,13 @@ public class ProductRepository : IProductRepository
         return await query.AnyAsync(cancellationToken);
     }
 
+    public async Task<decimal> GetTotalInventoryValueAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .Where(p => p.IsActive)
+            .SumAsync(p => p.Stock * p.Cost, cancellationToken);
+    }
+
     public async Task AddAsync(Product product, CancellationToken cancellationToken = default)
     {
         await _context.Products.AddAsync(product, cancellationToken);
