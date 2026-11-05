@@ -11,4 +11,5 @@ public class PurchaseFormViewModel
     public List<PurchaseCartItemViewModel> Cart { get; set; } = new();
     public decimal CartTotal => Cart.Sum(i => i.Subtotal);
     public string? ErrorMessage { get; set; }
+    public decimal AmountPaid { get; set; }
 }

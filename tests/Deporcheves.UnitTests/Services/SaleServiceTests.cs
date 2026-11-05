@@ -16,13 +16,22 @@ public class SaleServiceTests
         var mockSaleRepo = new Mock<ISaleRepository>();
         var mockProductRepo = new Mock<IProductRepository>();
         var mockCashRepo = new Mock<ICashSessionRepository>();
+        var mockInventoryService = new Mock<IInventoryService>(); // NUEVO
+        var mockCustomerRepo = new Mock<ICustomerRepository>();   // NUEVO
+        var mockReceivableRepo = new Mock<IReceivableRepository>(); // NUEVO
 
         // Simulamos que NO hay caja abierta
         mockCashRepo.Setup(r => r.GetActiveSessionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((CashSession?)null);
 
-        var service = new SaleService(mockSaleRepo.Object, mockProductRepo.Object, mockCashRepo.Object);
-        
+        var service = new SaleService(
+            mockSaleRepo.Object, 
+            mockProductRepo.Object, 
+            mockCashRepo.Object,
+            mockInventoryService.Object,
+            mockCustomerRepo.Object,
+            mockReceivableRepo.Object);
+
         var request = new CreateSaleRequest 
         { 
             PaymentMethod = PaymentMethod.Cash,
@@ -43,6 +52,9 @@ public class SaleServiceTests
         var mockSaleRepo = new Mock<ISaleRepository>();
         var mockProductRepo = new Mock<IProductRepository>();
         var mockCashRepo = new Mock<ICashSessionRepository>();
+        var mockInventoryService = new Mock<IInventoryService>(); // NUEVO
+        var mockCustomerRepo = new Mock<ICustomerRepository>();   // NUEVO
+        var mockReceivableRepo = new Mock<IReceivableRepository>(); // NUEVO
 
         var activeSession = new CashSession { Id = 1 };
         var product = new Product { Id = 1, Name = "Test", Price = 100, Stock = 10 };
@@ -54,8 +66,14 @@ public class SaleServiceTests
         mockSaleRepo.Setup(r => r.GetLastSaleNumberForDateAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?)null);
 
-        var service = new SaleService(mockSaleRepo.Object, mockProductRepo.Object, mockCashRepo.Object);
-        
+        var service = new SaleService(
+            mockSaleRepo.Object, 
+            mockProductRepo.Object, 
+            mockCashRepo.Object,
+            mockInventoryService.Object,
+            mockCustomerRepo.Object,
+            mockReceivableRepo.Object);
+
         var request = new CreateSaleRequest 
         { 
             PaymentMethod = PaymentMethod.Cash,

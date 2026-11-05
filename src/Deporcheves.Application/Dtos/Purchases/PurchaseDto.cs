@@ -9,5 +9,8 @@ public class PurchaseDto
     public DateTime CreatedAt { get; set; }
     public decimal Total { get; set; }
     public string? Notes { get; set; }
+    public decimal PaidAmount { get; set; }
+    public decimal Balance { get; set; }
+    public bool IsFullyPaid => Balance <= 0.01m;
     public List<PurchaseItemDto> Items { get; set; } = new();
 }

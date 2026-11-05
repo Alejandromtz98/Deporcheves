@@ -18,6 +18,10 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
         builder.Property(p => p.Total).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(p => p.Notes).HasMaxLength(500);
 
+        builder.Property(p => p.PaidAmount).HasColumnType("decimal(18,2)").IsRequired();
+        builder.Ignore(p => p.Balance);
+        builder.Ignore(p => p.IsFullyPaid);
+
         builder.HasOne(p => p.Supplier)
             .WithMany()
             .HasForeignKey(p => p.SupplierId)

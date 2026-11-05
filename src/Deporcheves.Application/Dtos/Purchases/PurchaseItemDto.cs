@@ -7,4 +7,5 @@ public class PurchaseItemDto
     public int Quantity { get; set; }
     public decimal UnitCost { get; set; }
     public decimal Subtotal { get; set; }
+    
 }
