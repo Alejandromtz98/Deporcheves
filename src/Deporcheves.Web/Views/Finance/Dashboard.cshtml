@@ -35,11 +35,12 @@
 </div>
 
 <!-- Tarjetas de KPIs Principales -->
-<div class="row mb-4">
+<!-- Fila 1: Resultados Operativos -->
+<div class="row mb-3">
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-success text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Utilidad Neta</h6>
+                <h6 class="text-uppercase mb-2">Utilidad Neta (Contable)</h6>
                 <h2 class="mb-0">@Model.NetProfit.ToString("C")</h2>
                 <small>Margen: @Model.GrossMarginPercentage.ToString("N1")%</small>
             </div>
@@ -48,9 +49,9 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-primary text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Punto de Equilibrio (Mensual)</h6>
-                <h2 class="mb-0">@Model.BreakEvenPoint.ToString("C")</h2>
-                <small>Costos Fijos: @Model.MonthlyFixedCosts.ToString("C")</small>
+                <h6 class="text-uppercase mb-2">Flujo de Caja Real</h6>
+                <h2 class="mb-0">@Model.RealCashFlow.ToString("C")</h2>
+                <small>Efectivo neto generado</small>
             </div>
         </div>
     </div>
@@ -69,6 +70,37 @@
                 <h6 class="text-uppercase mb-2">Valor del Inventario</h6>
                 <h2 class="mb-0">@Model.InventoryValue.ToString("C")</h2>
                 <small>Capital atrapado en stock</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila 2: Deudas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-secondary text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Cuentas por Cobrar</h6>
+                <h2 class="mb-0">@Model.TotalReceivables.ToString("C")</h2>
+                <small>Dinero fiado (Por cobrar)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-dark text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2">Cuentas por Pagar</h6>
+                <h2 class="mb-0">@Model.TotalPayables.ToString("C")</h2>
+                <small>Deuda con proveedores</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-light h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h6 class="text-uppercase text-muted mb-2">Punto de Equilibrio (Mensual)</h6>
+                <h3 class="mb-0">@Model.BreakEvenPoint.ToString("C")</h3>
+                <small class="text-muted">Costos Fijos: @Model.MonthlyFixedCosts.ToString("C")</small>
             </div>
         </div>
     </div>
