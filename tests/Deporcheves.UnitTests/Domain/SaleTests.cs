@@ -6,7 +6,7 @@ namespace Deporcheves.UnitTests.Domain;
 public class SaleTests
 {
     [Fact]
-    public void AddItem_ProductoValido_ActualizaTotalYStock()
+    public void AddItem_ProductoValido_ActualizaTotalYNoModificaStock()
     {
         // Arrange
         var product = new Product { Name = "Sabritas", Price = 18.50m, Stock = 10 };
@@ -17,14 +17,17 @@ public class SaleTests
 
         // Assert
         Assert.Single(sale.Items);
-        Assert.Equal(8, product.Stock); // Stock disminuido
-        Assert.Equal(37.00m, sale.Total); // 18.50 * 2
         
+        // CAMBIO IMPORTANTE: El stock ya no se modifica en la entidad Sale.
+        // La modificación del stock es responsabilidad del InventoryService.
+        Assert.Equal(10, product.Stock); 
+        
+        Assert.Equal(37.00m, sale.Total); // 18.50 * 2
+            
         var item = sale.Items.First();
         Assert.Equal("Sabritas", item.ProductName); // Snapshot
         Assert.Equal(18.50m, item.UnitPrice);       // Snapshot
     }
-
     [Fact]
     public void AddItem_ProductoNulo_LanzaExcepcion()
     {
