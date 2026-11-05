@@ -31,6 +31,9 @@ public class Sale
     // FK al usuario que registro la venta.
     public int? UserId { get; set; }
     public User? User { get; set; }
+    public int? CustomerId { get; set; }
+    public Customer? Customer { get; set; }
+    public decimal AmountFiado { get; set; } // Lo que quedó a deber
 
     private readonly List<SaleItem> _items = new();
 
@@ -50,7 +53,7 @@ public class Sale
             throw new ArgumentNullException(nameof(product));
 
         // DecreaseStock valida que quantity > 0 y que haya stock suficiente.
-        product.DecreaseStock(quantity);
+        //product.DecreaseStock(quantity);
 
         var item = new SaleItem
         {

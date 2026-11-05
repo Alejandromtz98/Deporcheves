@@ -26,8 +26,11 @@ public class DeporchevesDbContext : DbContext
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
     public DbSet<FixedCost> FixedCosts => Set<FixedCost>();
     public DbSet<FinancialSnapshot> FinancialSnapshots => Set<FinancialSnapshot>();
-    
     public DbSet<User> Users => Set<User>();
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+    public DbSet<InventoryCount> InventoryCounts => Set<InventoryCount>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<AccountsReceivable> AccountsReceivables => Set<AccountsReceivable>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

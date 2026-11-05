@@ -1,6 +1,7 @@
 using Deporcheves.Application.Abstractions.Persistence;
 using Deporcheves.Application.Dtos.Purchases;
 using Deporcheves.Domain.Entities;
+using Deporcheves.Domain.Enums;
 
 namespace Deporcheves.Application.Services;
 
@@ -9,15 +10,18 @@ public class PurchaseService : IPurchaseService
     private readonly IPurchaseRepository _purchaseRepository;
     private readonly IProductRepository _productRepository;
     private readonly ISupplierRepository _supplierRepository;
+    private readonly IInventoryService _inventoryService;
 
     public PurchaseService(
         IPurchaseRepository purchaseRepository,
         IProductRepository productRepository,
-        ISupplierRepository supplierRepository)
+        ISupplierRepository supplierRepository,
+        IInventoryService inventoryService)
     {
         _purchaseRepository = purchaseRepository;
         _productRepository = productRepository;
         _supplierRepository = supplierRepository;
+        _inventoryService = inventoryService;
     }
 
     public async Task<PurchaseDto> RegisterPurchaseAsync(CreatePurchaseRequest request, CancellationToken cancellationToken = default)
@@ -68,8 +72,16 @@ public class PurchaseService : IPurchaseService
                     $"Producto con Id {itemRequest.ProductId} no encontrado.");
 
             purchase.AddItem(product, itemRequest.Quantity, itemRequest.UnitCost);
+            await _inventoryService.RegisterMovementAsync(product, InventoryMovementType.Purchase, itemRequest.Quantity, itemRequest.UnitCost, purchase.PurchaseNumber, cancellationToken: cancellationToken);
         }
-
+        
+        if (request.AmountPaid > 0)
+        {
+            if (request.AmountPaid > purchase.Total)
+                throw new InvalidOperationException("El importe pagado no puede ser mayor al total de la compra.");
+                
+            purchase.RegisterPayment(request.AmountPaid);
+        }
         await _purchaseRepository.AddAsync(purchase, cancellationToken);
         await _purchaseRepository.SaveChangesAsync(cancellationToken);
 
@@ -94,6 +106,8 @@ public class PurchaseService : IPurchaseService
             CreatedAt = p.CreatedAt,
             Total = p.Total,
             Notes = p.Notes,
+            PaidAmount = p.PaidAmount,
+            Balance = p.Balance,
             Items = new List<PurchaseItemDto>()
         }).ToList();
     }
@@ -119,6 +133,33 @@ public class PurchaseService : IPurchaseService
 
         return $"C-{dateUtc:yyyyMMdd}-{nextConsecutive:D4}";
     }
+    public async Task<IReadOnlyList<PurchaseDto>> GetPendingPayablesAsync(CancellationToken cancellationToken = default)
+    {
+        var purchases = await _purchaseRepository.GetPendingPayablesAsync(cancellationToken);
+        
+        return purchases.Select(p => new PurchaseDto
+        {
+            Id = p.Id,
+            PurchaseNumber = p.PurchaseNumber,
+            SupplierName = p.Supplier?.Name ?? "Desconocido",
+            CreatedAt = p.CreatedAt,
+            Total = p.Total,
+            Notes = p.Notes,
+            PaidAmount = p.PaidAmount,
+            Balance = p.Balance
+            // Podemos usar Notes o agregar propiedades al DTO, pero para no tocarlo, 
+            // pasaremos el saldo y lo pagado en las propiedades existentes o crearemos un DTO específico.
+        }).ToList();
+    }
+
+    public async Task RegisterPaymentAsync(int purchaseId, decimal amount, CancellationToken cancellationToken = default)
+    {
+        var purchase = await _purchaseRepository.GetByIdAsync(purchaseId, cancellationToken)
+            ?? throw new InvalidOperationException("Compra no encontrada.");
+
+        purchase.RegisterPayment(amount); // Método de dominio que valida
+        await _purchaseRepository.SaveChangesAsync(cancellationToken);
+    }
 
     private static PurchaseDto MapToDto(Purchase purchase, string supplierName)
     {
@@ -131,6 +172,8 @@ public class PurchaseService : IPurchaseService
             CreatedAt = purchase.CreatedAt,
             Total = purchase.Total,
             Notes = purchase.Notes,
+            PaidAmount = purchase.PaidAmount,
+            Balance = purchase.Balance,
             Items = purchase.Items.Select(i => new PurchaseItemDto
             {
                 ProductId = i.ProductId,

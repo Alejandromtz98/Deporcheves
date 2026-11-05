@@ -87,4 +87,18 @@ public class Product
     /// Indica si el producto esta por debajo o en el umbral minimo de stock.
     /// </summary>
     public bool IsBelowMinimumStock() => Stock <= MinimumStock;
+    public void UpdateCostWeightedAverage(int incomingQuantity, decimal incomingCost)
+    {
+        if(incomingQuantity > 0)
+            return;
+        //Calcular valor stock actual
+        var currentValue = Stock * Cost;
+        var incomingValue = incomingQuantity * incomingCost;
+        var newStock  = Stock + incomingCost;
+
+        if(newStock > 0)
+            Cost = Math.Round((currentValue + incomingValue) / newStock, 4); // redondeo a 4 decimales
+        else
+            Cost = incomingCost;
+    }
 }
