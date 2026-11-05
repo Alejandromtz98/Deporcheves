@@ -11,16 +11,16 @@ public class SaleService : ISaleService
     private readonly IProductRepository _productRepository;
     private readonly ICashSessionRepository _cashSessionRepository;
     private readonly IInventoryService _inventoryService;
-    private readonly ICustomerRepository _customerRepository;       // NUEVO
-    private readonly IReceivableRepository _receivableRepository;   // NUEVO
+    private readonly ICustomerRepository _customerRepository;
+    private readonly IReceivableRepository _receivableRepository;
 
     public SaleService(
         ISaleRepository saleRepository, 
         IProductRepository productRepository, 
         ICashSessionRepository cashSessionRepository,
         IInventoryService inventoryService,
-        ICustomerRepository customerRepository,      // NUEVO
-        IReceivableRepository receivableRepository)  // NUEVO
+        ICustomerRepository customerRepository,
+        IReceivableRepository receivableRepository)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
@@ -38,7 +38,6 @@ public class SaleService : ISaleService
         var activeSession = await _cashSessionRepository.GetActiveSessionAsync(cancellationToken)
             ?? throw new InvalidOperationException("Debe abrir la caja antes de registrar ventas.");
 
-        // Validar Cliente si hay fiado
         Customer? customer = null;
         if (request.AmountFiado > 0)
         {
@@ -59,8 +58,8 @@ public class SaleService : ISaleService
             PaymentMethod = request.PaymentMethod,
             CashSessionId = activeSession.Id,
             UserId = userId,
-            CustomerId = customer?.Id,          // Asignar cliente
-            AmountFiado = request.AmountFiado   // Asignar monto fiado
+            CustomerId = customer?.Id,
+            AmountFiado = request.AmountFiado
         };
 
         foreach (var itemRequest in request.Items)
@@ -76,20 +75,23 @@ public class SaleService : ISaleService
 
             sale.AddItem(product, itemRequest.Quantity);
             
-            // Registrar salida en el Kardex (InventoryService)
             await _inventoryService.RegisterMovementAsync(product, InventoryMovementType.Sale, -itemRequest.Quantity, product.Cost, saleNumber, cancellationToken: cancellationToken);
         }
 
+        // --- VALIDACIÓN AQUÍ ---
+        // Se hace después del bucle para que sale.Total ya tenga el valor sumado de todos los items
+        if (request.AmountFiado > sale.Total)
+            throw new InvalidOperationException("El monto fiado no puede ser mayor al total de la venta.");
+        // -----------------------
+
         await _saleRepository.AddAsync(sale, cancellationToken);
         
-        // Si hay fiado, generamos la deuda antes de guardar para que sea una sola transacción
         if (request.AmountFiado > 0 && customer != null)
         {
             var receivable = new AccountsReceivable(sale, customer.Id, request.AmountFiado);
             await _receivableRepository.AddAsync(receivable, cancellationToken);
         }
 
-        // Guarda la Venta, los Movimientos de Inventario y la Deuda en un solo golpe.
         await _saleRepository.SaveChangesAsync(cancellationToken);
 
         return MapToDto(sale);

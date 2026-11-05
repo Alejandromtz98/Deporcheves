@@ -17,6 +17,7 @@ public class CashReportDto
     public decimal ExpectedCash { get; set; }
     public decimal? ClosingCash { get; set; }
     public decimal? Difference { get; set; }
+    public decimal TotalIncomes { get; set; }
     
     public bool IsClosed => ClosedAt.HasValue;
 }

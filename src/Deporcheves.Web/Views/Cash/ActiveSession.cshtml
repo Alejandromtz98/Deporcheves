@@ -26,6 +26,7 @@
                 <table class="table table-sm table-borderless">
                     <tr><td>Fondo Inicial:</td><td class="text-end">@Model.OpeningCash.ToString("C")</td></tr>
                     <tr><td>(+) Ventas Efectivo:</td><td class="text-end text-success">@Model.CashSales.ToString("C")</td></tr>
+                    <tr><td>(+) Cobros de Fiado:</td><td class="text-end text-success">@Model.TotalIncomes.ToString("C")</td></tr> <!-- NUEVO -->
                     <tr><td>(-) Gastos:</td><td class="text-end text-danger">-@Model.TotalExpenses.ToString("C")</td></tr>
                     <tr><td>(-) Retiros:</td><td class="text-end text-danger">-@Model.TotalWithdrawals.ToString("C")</td></tr>
                     <tr class="border-top border-dark fs-5 fw-bold">

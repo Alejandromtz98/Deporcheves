@@ -65,16 +65,18 @@ public class CashService : ICashService
     {
         var sales = await _saleRepository.GetByCashSessionIdAsync(session.Id, cancellationToken);
 
-        var cashSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Cash).Sum(s => s.Total);
-        var cardSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Card).Sum(s => s.Total);
-        var transferSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Transfer).Sum(s => s.Total);
+        var cashSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Cash).Sum(s => s.Total - s.AmountFiado);
+        var cardSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Card).Sum(s => s.Total - s.AmountFiado);
+        var transferSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Transfer).Sum(s => s.Total - s.AmountFiado);
 
         var totalExpenses = session.Movements
             .Where(m => m.Type == CashMovementType.Expense).Sum(m => m.Amount);
         var totalWithdrawals = session.Movements
             .Where(m => m.Type == CashMovementType.Withdrawal).Sum(m => m.Amount);
+        var totalIncomes = session.Movements
+            .Where(m => m.Type == CashMovementType.Income).Sum(m => m.Amount);
 
-        var expectedCash = session.OpeningCash + cashSales - totalExpenses - totalWithdrawals;
+        var expectedCash = session.OpeningCash + cashSales + totalIncomes - totalExpenses - totalWithdrawals;
 
         return new CashReportDto
         {
@@ -89,7 +91,8 @@ public class CashService : ICashService
             TotalWithdrawals = totalWithdrawals,
             ExpectedCash = expectedCash,
             ClosingCash = session.ClosingCash,
-            Difference = session.Difference
+            Difference = session.Difference,
+            TotalIncomes = totalIncomes
         };
     }
 }
