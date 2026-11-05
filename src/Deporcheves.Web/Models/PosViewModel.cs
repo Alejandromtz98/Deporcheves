@@ -11,5 +11,8 @@ public class PosViewModel
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     public string? ErrorMessage { get; set; }
     public string? SearchTerm { get; set; }
+    public List<Deporcheves.Domain.Entities.Customer> Customers { get; set; } = new();
+    public int? SelectedCustomerId { get; set; }
+    public decimal AmountFiado { get; set; }
     public int LowStockCount => Products.Count(p => p.IsBelowMinimumStock());
 }

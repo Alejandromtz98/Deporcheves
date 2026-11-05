@@ -14,11 +14,13 @@ public class SalesController : Controller
     private const string CartSessionKey = "PosCart";
     private readonly ISaleService _saleService;
     private readonly IProductRepository _productRepository;
+    private readonly ICustomerRepository _customerRepository;
 
-    public SalesController(ISaleService saleService, IProductRepository productRepository)
+    public SalesController(ISaleService saleService, IProductRepository productRepository, ICustomerRepository customerRepository)
     {
         _saleService = saleService;
         _productRepository = productRepository;
+        _customerRepository = customerRepository;
     }
 
    public async Task<IActionResult> Index(string? search, CancellationToken cancellationToken)
@@ -83,24 +85,25 @@ public class SalesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(PaymentMethod paymentMethod, CancellationToken cancellationToken)
+    public async Task<IActionResult> Confirm(PaymentMethod paymentMethod, int? customerId, decimal amountFiado, CancellationToken cancellationToken)
     {
         var cart = GetCart();
         if (cart.Count == 0)
             return View("Index", await BuildPosViewModelAsync("El ticket esta vacio.", cancellationToken));
 
-        var userIdstring = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if(string.IsNullOrEmpty(userIdstring) || !int.TryParse(userIdstring, out var userId))
-            return View("Index", await BuildPosViewModelAsync("Error en la sesion del usuario", cancellationToken));
+        if (amountFiado > 0 && !customerId.HasValue)
+            return View("Index", await BuildPosViewModelAsync("Debe seleccionar un cliente para fiar.", cancellationToken));
+
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            return View("Index", await BuildPosViewModelAsync("Error de sesion.", cancellationToken));
 
         var request = new CreateSaleRequest
         {
             PaymentMethod = paymentMethod,
-            Items = cart.Select(i => new CreateSaleItemRequest
-            {
-                ProductId = i.ProductId,
-                Quantity = i.Quantity
-            }).ToList()
+            CustomerId = customerId,
+            AmountFiado = amountFiado,
+            Items = cart.Select(i => new CreateSaleItemRequest { ProductId = i.ProductId, Quantity = i.Quantity }).ToList()
         };
 
         try
@@ -131,22 +134,21 @@ public class SalesController : Controller
     // ------------------------------------------------------------
     // Privados
     // ------------------------------------------------------------
-
-    private async Task<PosViewModel> BuildPosViewModelAsync(
-        string? error,
-        CancellationToken cancellationToken,
-        string? searchTerm = null)
+    private async Task<PosViewModel> BuildPosViewModelAsync(string? error, CancellationToken cancellationToken, string? searchTerm = null)
     {
         var products = string.IsNullOrWhiteSpace(searchTerm)
             ? await _productRepository.GetAllActiveAsync(cancellationToken)
             : await _productRepository.SearchAsync(searchTerm, cancellationToken);
+
+        var customers = await _customerRepository.SearchAsync("", cancellationToken);
 
         return new PosViewModel
         {
             Products = products.ToList(),
             Cart = GetCart(),
             ErrorMessage = error,
-            SearchTerm = searchTerm
+            SearchTerm = searchTerm,
+            Customers = customers.ToList()
         };
     }
 

@@ -1,0 +1,21 @@
+@model IReadOnlyList<Deporcheves.Domain.Entities.Customer>
+@{ ViewData["Title"] = "Clientes"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Directorio de Clientes</h2>
+    <a asp-action="Create" class="btn btn-primary">Nuevo Cliente</a>
+</div>
+
+<table class="table table-striped">
+    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Fecha de Registro</th></tr></thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td>@c.Name</td>
+            <td>@c.Phone</td>
+            <td>@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+        </tr>
+    }
+    </tbody>
+</table>

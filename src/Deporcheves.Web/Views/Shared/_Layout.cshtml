@@ -22,6 +22,8 @@
                     <li class="nav-item"><a class="nav-link text-dark" asp-controller="Sales" asp-action="Index">Venta</a></li>
                     <li class="nav-item"><a class="nav-link text-dark" asp-controller="Sales" asp-action="Daily">Ventas del dia</a></li>
                     <li class="nav-item"><a class="nav-link text-dark" asp-controller="Cash" asp-action="Index">Caja</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Customers" asp-action="Index">Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Receivables" asp-action="Index">Cobranza</a></li>
                     
                     @if (User.IsInRole("Admin"))
                     {
@@ -30,6 +32,7 @@
                         <li class="nav-item"><a class="nav-link text-dark" asp-controller="Suppliers" asp-action="Index">Proveedores</a></li>
                         <li class="nav-item"><a class="nav-link text-dark" asp-controller="Users" asp-action="Index">Usuarios</a></li>
                         <li class="nav-item"><a class="nav-link text-dark" asp-controller="Finance" asp-action="Dashboard">Finanzas</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Purchases" asp-action="Payables">Ctas. x Pagar</a></li>
                     }
                 </ul>
                 <ul class="navbar-nav">

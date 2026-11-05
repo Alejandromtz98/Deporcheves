@@ -1,0 +1,48 @@
+@model IReadOnlyList<Deporcheves.Domain.Entities.AccountsReceivable>
+@{ ViewData["Title"] = "Cuentas por Cobrar"; }
+
+<h2>Cuentas por Cobrar (Fiados)</h2>
+
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No hay deudas pendientes.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Pagado</th>
+                <th>Saldo</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var debt in Model)
+            {
+                <tr>
+                    <td>@debt.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                    <td>@debt.Customer.Name</td>
+                    <td>@debt.TotalAmount.ToString("C")</td>
+                    <td>@debt.PaidAmount.ToString("C")</td>
+                    <td class="text-danger fw-bold">@debt.Balance.ToString("C")</td>
+                    <td>@debt.Status</td>
+                    <td>
+                        <form asp-action="Pay" method="post" class="d-flex gap-1">
+                            <input type="hidden" name="id" value="@debt.Id" />
+                            <input type="number" name="amount" step="0.01" min="0.01" max="@debt.Balance" value="@debt.Balance" class="form-control form-control-sm" style="width: 100px;" required />
+                            <button type="submit" class="btn btn-sm btn-primary">Cobrar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

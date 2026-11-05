@@ -93,12 +93,30 @@
             </table>
 
             <form asp-action="Confirm" method="post">
-                <div class="mb-3">
-                    <label class="form-label">Metodo de pago</label>
-                    <select name="paymentMethod" class="form-select" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.PaymentMethod>()"></select>
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label mb-0">Método de pago (para el resto)</label>
+                        <select name="paymentMethod" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.PaymentMethod>()"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label mb-0">Monto Fiado ($)</label>
+                        <input type="number" name="amountFiado" value="0" step="0.01" min="0" class="form-control form-control-sm" />
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success">Confirmar venta</button>
-                <button type="submit" asp-action="ClearCart" class="btn btn-outline-secondary">Cancelar ticket</button>
+                
+                <div class="mb-2">
+                    <label class="form-label mb-0">Cliente (Obligatorio si hay fiado)</label>
+                    <select name="customerId" class="form-select form-select-sm">
+                        <option value="">-- Sin cliente (Pago completo) --</option>
+                        @foreach (var customer in Model.Customers)
+                        {
+                            <option value="@customer.Id">@customer.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 mt-2">Confirmar venta</button>
+                <button type="submit" asp-action="ClearCart" class="btn btn-outline-secondary w-100 mt-1">Cancelar ticket</button>
             </form>
         }
     </div>

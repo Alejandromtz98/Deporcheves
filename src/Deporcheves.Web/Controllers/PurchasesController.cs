@@ -96,7 +96,7 @@ public class PurchasesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(int supplierId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Confirm(int supplierId, decimal amountPaid, CancellationToken cancellationToken)
     {
         var cart = GetCart();
         if (cart.Count == 0)
@@ -108,6 +108,7 @@ public class PurchasesController : Controller
         var request = new CreatePurchaseRequest
         {
             SupplierId = supplierId,
+            AmountPaid = amountPaid,
             Items = cart.Select(i => new CreatePurchaseItemRequest
             {
                 ProductId = i.ProductId,
@@ -133,6 +134,27 @@ public class PurchasesController : Controller
         var purchase = await _purchaseService.GetPurchaseByIdAsync(id, cancellationToken);
         if (purchase is null) return NotFound();
         return View(purchase);
+    }
+    public async Task<IActionResult> Payables(CancellationToken cancellationToken)
+    {
+        var payables = await _purchaseService.GetPendingPayablesAsync(cancellationToken);
+        return View(payables);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Pay(int id, decimal amount, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _purchaseService.RegisterPaymentAsync(id, amount, cancellationToken);
+            TempData["Success"] = "Abono registrado correctamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+        return RedirectToAction(nameof(Payables));
     }
 
     // ------------------------------------------------------------

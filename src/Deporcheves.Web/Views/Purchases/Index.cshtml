@@ -18,6 +18,16 @@ else
                 <td>@p.SupplierName</td>
                 <td>@p.Total.ToString("C")</td>
                 <td><a asp-action="Details" asp-route-id="@p.Id">Detalle</a></td>
+                <td>
+                @if(@p.IsFullyPaid)
+                {
+                    <span class= "badge bg-success">Pagada</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger" title="Saldo pendiente: @p.Balance.ToString("C")">Pendiente</span>
+                }
+                </td>
             </tr>
         }
         </tbody>
