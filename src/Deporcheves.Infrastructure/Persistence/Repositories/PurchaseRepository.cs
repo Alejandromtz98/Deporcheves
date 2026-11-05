@@ -47,6 +47,27 @@ public class PurchaseRepository : IPurchaseRepository
             .Select(p => p.PurchaseNumber)
             .FirstOrDefaultAsync(cancellationToken);
     }
+    public async Task<IReadOnlyList<Purchase>> GetPendingPayablesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Purchases
+            .Include(p => p.Supplier)
+            .Where(p => p.PaidAmount < p.Total) // Solo las que tienen saldo
+            .OrderBy(p => p.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Purchase?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Purchases.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<decimal> GetTotalPendingPayableBalanceAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Purchases
+            .Where(p => p.PaidAmount < p.Total)
+            .SumAsync(p => p.Total - p.PaidAmount, cancellationToken);
+    }    
 
     public async Task AddAsync(Purchase purchase, CancellationToken cancellationToken = default)
     {

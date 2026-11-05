@@ -18,4 +18,7 @@ public class FinancialDashboardDto
     
     public decimal InventoryValue { get; set; }
     public decimal SafeWithdrawal { get; set; }
+    public decimal TotalReceivables { get; set; } // Dinero que nos deben (CxC)
+    public decimal TotalPayables { get; set; }    // Dinero que debemos (CxP)
+    public decimal RealCashFlow { get; set; }     // Efectivo real generado en el periodo
 }

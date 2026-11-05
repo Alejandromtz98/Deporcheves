@@ -10,17 +10,23 @@ public class FinancialService : IFinancialService
     private readonly ICashSessionRepository _cashRepo;
     private readonly IFixedCostRepository _fixedCostRepo;
     private readonly IProductRepository _productRepo;
+    private readonly IReceivableRepository _receivableRepository;
+    private readonly IPurchaseRepository _purchaseRepository;
 
     public FinancialService(
         ISaleRepository saleRepo, 
         ICashSessionRepository cashRepo, 
         IFixedCostRepository fixedCostRepo,
-        IProductRepository productRepo)
+        IProductRepository productRepo,
+        IReceivableRepository receivableRepository,
+        IPurchaseRepository purchaseRepository)
     {
         _saleRepo = saleRepo;
         _cashRepo = cashRepo;
         _fixedCostRepo = fixedCostRepo;
         _productRepo = productRepo;
+        _receivableRepository = receivableRepository;
+        _purchaseRepository = purchaseRepository;
     }
 
     public async Task<FinancialDashboardDto> GetDashBoardAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
@@ -36,9 +42,13 @@ public class FinancialService : IFinancialService
             .SelectMany(s => s.Movements)
             .Where(m => m.Type == CashMovementType.Expense)
             .Sum(m => m.Amount);
+        var purchases = await _purchaseRepository.GetByDateRangeAsync(startDate, endDate, cancellationToken);
+        decimal totalPaidPurchases = purchases.Sum(p => p.PaidAmount);
+        decimal totalFiadoSales = sales.Sum(s => s.AmountFiado);
 
         // 2. Calcular Ingresos y COGS
         decimal totalRevenue = sales.Sum(s => s.Total);
+        decimal realCashFlow = (totalRevenue - totalFiadoSales) - totalPaidPurchases - totalOpex;
         
         // COGS: Cruzamos los items vendidos con el costo actual del producto
         decimal totalCogs = 0;
@@ -57,6 +67,8 @@ public class FinancialService : IFinancialService
         // 3. Calcular Utilidades
         decimal grossProfit = totalRevenue - totalCogs;
         decimal netProfit = grossProfit - totalOpex;
+        decimal totalReciables = await _receivableRepository.GetTotalPendingBalanceAsync(cancellationToken);
+        decimal totalPayables = await _purchaseRepository.GetTotalPendingPayableBalanceAsync(cancellationToken);
 
         // 4. Calcular Punto de Equilibrio
         var fixedCosts = await _fixedCostRepo.GetAllActiveAsync(cancellationToken);
@@ -89,7 +101,10 @@ public class FinancialService : IFinancialService
             MonthlyFixedCosts = monthlyFixedCosts,
             BreakEvenPoint = breakEvenPoint,
             InventoryValue = inventoryValue,
-            SafeWithdrawal = safeWithdrawal
+            SafeWithdrawal = safeWithdrawal,
+            TotalReceivables = totalReciables,
+            TotalPayables = totalPayables,
+            RealCashFlow = realCashFlow
         };
     }
 }

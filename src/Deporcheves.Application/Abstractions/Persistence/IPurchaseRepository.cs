@@ -21,6 +21,9 @@ public interface IPurchaseRepository
     /// </summary>
     Task<string?> GetLastPurchaseNumberForDateAsync(
         DateTime dateUtc, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Purchase>> GetPendingPayablesAsync(CancellationToken cancellationToken = default);
+    Task<Purchase?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalPendingPayableBalanceAsync(CancellationToken cancellationToken = default);
 
     Task AddAsync(Purchase purchase, CancellationToken cancellationToken = default);
 

@@ -19,6 +19,12 @@ public class ReceivableRepository : IReceivableRepository
             .Where(a => a.Status == ReceivableStatus.Pending || a.Status == ReceivableStatus.PartiallyPaid)
             .OrderBy(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
+    public async Task<decimal> GetTotalPendingBalanceAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.AccountsReceivables
+            .Where(a => a.Status == ReceivableStatus.Pending || a.Status == ReceivableStatus.PartiallyPaid)
+            .SumAsync(a => a.Balance, cancellationToken);
+    }
 
     public async Task AddAsync(AccountsReceivable receivable, CancellationToken cancellationToken = default)
         => await _context.AccountsReceivables.AddAsync(receivable, cancellationToken);
