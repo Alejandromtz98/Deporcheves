@@ -9,8 +9,14 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Deporcheves.Application.Abstractions.Security;
 using Deporcheves.Infrastructure.Security;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//Forzar cultura MX para monedas
+var cultureInfo = new CultureInfo("es-MX");
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 //Configuracion Docker
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";

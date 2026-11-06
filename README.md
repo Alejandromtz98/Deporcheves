@@ -46,3 +46,9 @@ El proyecto sigue los principios de **Clean Architecture** simplificada, dividid
 ### Comandos para levantar el proyecto
    -docker compose up -d db
    -dotnet run --project src/Deporcheves.Web
+### Migrar excel a NET
+   -docker compose down -v
+   -docker compose up -d db
+   -dotnet run --project src/Deporcheves.Web //Para migrar tablas y usuario inicial
+   -dotnet run --project src/Deporcheves.DataMigration/Deporcheves.DataMigration.csproj // limpiar y migrar
+   -dotnet run --project src/Deporcheves.Web // Levantar proyecto con datos

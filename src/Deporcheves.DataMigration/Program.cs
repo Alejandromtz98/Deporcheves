@@ -8,8 +8,8 @@ using System.Globalization;
 // ============================================================
 // CONFIGURACIÓN DE LA BASE DE DATOS (CAMBIA ESTO SI ES NECESARIO)
 // ============================================================
-var connectionString = "Host=localhost;Port=5432;Database=deporcheves;Username=postgres;Password=postgres";
-// var connectionString = "TU_CADENA_DE_NEON_AQUI";
+//var connectionString = "Host=localhost;Port=5432;Database=deporcheves;Username=postgres;Password=postgres";
+var connectionString = "Host=ep-lingering-resonance-b4xobjfb-pooler.c-6.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_6u3yYwlMjWFT;SSL Mode=Require;Channel Binding=Require";
 
 var optionsBuilder = new DbContextOptionsBuilder<DeporchevesDbContext>();
 optionsBuilder.UseNpgsql(connectionString);
