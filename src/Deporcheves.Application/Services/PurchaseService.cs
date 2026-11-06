@@ -161,6 +161,22 @@ public class PurchaseService : IPurchaseService
         await _purchaseRepository.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<PurchaseDto>> GetPurchasesByDateRangeAsync(DateTime start, DateTime end, CancellationToken cancellationToken)
+    {
+        var purchases = await _purchaseRepository.GetByDateRangeAsync(start, end, cancellationToken);
+        return purchases.Select(p => new PurchaseDto
+        {
+            Id = p.Id,
+            PurchaseNumber = p.PurchaseNumber,
+            SupplierId = p.SupplierId,
+            SupplierName = p.Supplier?.Name ?? string.Empty,
+            CreatedAt = p.CreatedAt,
+            Total = p.Total,
+            Notes = p.Notes,
+            Items = new List<PurchaseItemDto>()
+        }).ToList();   
+    }
+
     private static PurchaseDto MapToDto(Purchase purchase, string supplierName)
     {
         return new PurchaseDto

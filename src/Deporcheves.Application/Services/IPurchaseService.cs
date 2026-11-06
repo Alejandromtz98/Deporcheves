@@ -8,5 +8,6 @@ public interface IPurchaseService
     Task<IReadOnlyList<PurchaseDto>> GetPurchasesByDateAsync(DateTime dateUtc, CancellationToken cancellationToken = default);
     Task<PurchaseDto?> GetPurchaseByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PurchaseDto>> GetPendingPayablesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PurchaseDto>> GetPurchasesByDateRangeAsync(DateTime start, DateTime end, CancellationToken cancellationToken = default);
     Task RegisterPaymentAsync(int purchaseId, decimal amount, CancellationToken cancellationToken = default);
 }

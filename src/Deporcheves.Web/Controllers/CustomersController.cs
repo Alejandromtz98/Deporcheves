@@ -42,4 +42,32 @@ public class CustomersController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    {
+        var customer = await _repository.GetByIdAsync(id, cancellationToken);
+        if (customer is null) return NotFound();
+
+        return View(new CustomerFormViewModel 
+        { 
+            Id = customer.Id, // Asignamos el ID
+            Name = customer.Name, 
+            Phone = customer.Phone 
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(CustomerFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var customer = await _repository.GetByIdAsync(model.Id, cancellationToken); // Usamos model.Id
+        if (customer is null) return NotFound();
+
+        customer.Name = model.Name.Trim();
+        customer.Phone = model.Phone?.Trim();
+        
+        await _repository.SaveChangesAsync(cancellationToken);
+        return RedirectToAction(nameof(Index));
+    }
 }

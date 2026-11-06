@@ -15,6 +15,10 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
+    public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
     public async Task<bool> ExistsWithUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         return await _context.Users.AnyAsync(u => u.Username == username, cancellationToken);
@@ -29,7 +33,10 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.AsNoTracking().OrderBy(u => u.Username).ToListAsync(cancellationToken);
     }
-
+    public void Update(User user)
+    {
+        _context.Users.Update(user);
+    }
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);

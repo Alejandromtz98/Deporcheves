@@ -40,4 +40,27 @@ public class UserService : IUserService
         await _repository.AddAsync(user, cancellationToken);
         await _repository.SaveChangesAsync(cancellationToken);
     }
+    public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _repository.GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task UpdateAsync(int id, string username, string? newPassword, UserRole role, bool isActive, CancellationToken cancellationToken = default)
+    {
+        var user = await _repository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("Usuario no encontrado.");
+
+        user.Username = username.Trim();
+        user.Role = role;
+        user.IsActive = isActive;
+
+        // Solo actualizamos la contraseña si se proporcionó una nueva
+        if (!string.IsNullOrWhiteSpace(newPassword))
+        {
+            user.PasswordHash = _hasher.Hash(newPassword);
+        }
+
+        _repository.Update(user);
+        await _repository.SaveChangesAsync(cancellationToken);
+    }
 }

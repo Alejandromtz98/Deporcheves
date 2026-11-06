@@ -28,9 +28,20 @@ public class PurchasesController : Controller
         _supplierService = supplierService;
     }
 
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken)
     {
-        var purchases = await _purchaseService.GetPurchasesByDateAsync(DateTime.UtcNow, cancellationToken);
+        var start = startDate ?? DateTime.UtcNow.Date;
+        var end = endDate ?? DateTime.UtcNow.Date;
+
+        // Ajustamos las fechas a UTC
+        var utcStart = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        var utcEnd = DateTime.SpecifyKind(end, DateTimeKind.Utc).AddDays(1).AddTicks(-1);
+
+        var purchases = await _purchaseService.GetPurchasesByDateRangeAsync(utcStart, utcEnd, cancellationToken);
+        
+        ViewData["StartDate"] = start.ToString("yyyy-MM-dd");
+        ViewData["EndDate"] = end.ToString("yyyy-MM-dd");
+
         return View(purchases);
     }
 
@@ -156,6 +167,7 @@ public class PurchasesController : Controller
         }
         return RedirectToAction(nameof(Payables));
     }
+
 
     // ------------------------------------------------------------
     // Privados

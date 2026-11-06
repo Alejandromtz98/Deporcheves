@@ -7,4 +7,6 @@ public interface IUserService
 {
     Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default);
     Task CreateAsync(string username, string password, UserRole role, CancellationToken cancellationToken = default);
+    Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task UpdateAsync(int id, string username, string? newPassword, UserRole role, bool isActive, CancellationToken cancellationToken = default);
 }

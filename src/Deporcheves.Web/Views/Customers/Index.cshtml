@@ -7,7 +7,7 @@
 </div>
 
 <table class="table table-striped">
-    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Fecha de Registro</th></tr></thead>
+    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Fecha de Registro</th><th>Acciones</th></tr></thead>
     <tbody>
     @foreach (var c in Model)
     {
@@ -15,6 +15,7 @@
             <td>@c.Name</td>
             <td>@c.Phone</td>
             <td>@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+            <td><a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">Editar</a></td>
         </tr>
     }
     </tbody>

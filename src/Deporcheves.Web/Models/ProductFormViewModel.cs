@@ -5,6 +5,8 @@ namespace Deporcheves.Web.Models;
 
 public class ProductFormViewModel
 {
+    public int Id { get; set; }
+    
     [Required(ErrorMessage = "El SKU es obligatorio.")]
     [StringLength(50, ErrorMessage = "El SKU no puede exceder 50 caracteres.")]
     [Display(Name = "SKU")]

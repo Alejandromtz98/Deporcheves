@@ -30,6 +30,7 @@
                 <td>@product.Stock</td>
                 <td>@product.MinimumStock</td>
                 <td>@(product.IsActive ? "Activo" : "Inactivo")</td>
+                <td><a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary">Editar</a></td>
             </tr>
         }
     </tbody>

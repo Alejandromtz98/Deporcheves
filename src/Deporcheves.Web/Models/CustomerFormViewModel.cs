@@ -4,6 +4,7 @@ namespace Deporcheves.Web.Models;
 
 public class CustomerFormViewModel
 {
+    public int Id { get; set; }
     [Required(ErrorMessage = "El nombre es obligatorio.")]
     [StringLength(150)]
     [Display(Name = "Nombre completo")]

@@ -40,4 +40,35 @@ public class UsersController : Controller
             return View(model);
         }
     }
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    {
+        var user = await _userService.GetByIdAsync(id, cancellationToken);
+        if (user is null) return NotFound();
+
+        return View(new UserEditViewModel
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Role = user.Role,
+            IsActive = user.IsActive
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(UserEditViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        try
+        {
+            await _userService.UpdateAsync(model.Id, model.Username, model.Password, model.Role, model.IsActive, cancellationToken);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(model);
+        }
+    }
 }

@@ -1,0 +1,18 @@
+@model Deporcheves.Web.Models.SupplierFormViewModel
+@{ ViewData["Title"] = "Editar Proveedor"; }
+
+<h1>Editar Proveedor</h1>
+<div class="row"><div class="col-md-6">
+    <form asp-action="Edit" method="post">
+        <!-- IMPORTANTE: Enviar el ID oculto -->
+        <input type="hidden" asp-for="Id" />
+        
+        <!-- Reutilizamos el partial que ya teníamos -->
+        <partial name="_Form" model="Model" />
+        
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div></div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

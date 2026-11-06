@@ -55,4 +55,54 @@ public class ProductsController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+    public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    {
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken);
+        if (product is null) return NotFound();
+
+        var model = new ProductFormViewModel
+        {
+            Id = product.Id,
+            Sku = product.Sku,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Cost = product.Cost,
+            Stock = product.Stock,
+            MinimumStock = product.MinimumStock,
+            Unit = product.Unit
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(ProductFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var product = await _productRepository.GetByIdAsync(model.Id, cancellationToken);
+        if (product is null) return NotFound();
+
+        // Validar SKU duplicado (excluyendo el actual)
+        if (await _productRepository.ExistsWithSkuAsync(model.Sku, model.Id, cancellationToken))
+        {
+            ModelState.AddModelError(nameof(model.Sku), "Ya existe otro producto con ese SKU.");
+            return View(model);
+        }
+
+        product.Sku = model.Sku.Trim();
+        product.Name = model.Name.Trim();
+        product.Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim();
+        product.Price = model.Price;
+        product.Cost = model.Cost;
+        product.MinimumStock = model.MinimumStock;
+        product.Unit = model.Unit;
+        // Nota: No actualizamos el Stock directamente aquí (para eso está el Kardex/Ajustes)
+
+        _productRepository.Update(product);
+        await _productRepository.SaveChangesAsync(cancellationToken);
+
+        return RedirectToAction(nameof(Index));
+    }
 }
