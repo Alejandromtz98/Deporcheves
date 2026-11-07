@@ -100,6 +100,7 @@ appsettings.*.Local.json
 .env
 .env.*
 !.env.example
+*.sql
 
 # Certificados de desarrollo.
 *.pfx
