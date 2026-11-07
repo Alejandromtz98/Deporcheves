@@ -70,6 +70,19 @@ public class FinancialService : IFinancialService
 
         decimal grossProfit = totalRevenue - totalCogs;
         decimal netProfit = grossProfit - totalOpex;
+
+        decimal initialCapital = 0;
+        var capStr = await _productRepo.GetSettingValueAsync("CAPITAL_INICIAL", cancellationToken);
+        if (decimal.TryParse(capStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsedCap))
+        {
+            initialCapital = parsedCap;
+        }
+
+                // KPIs Operativos
+        int totalOperations = sales.Count;
+        int totalUnits = sales.SelectMany(s => s.Items).Sum(i => i.Quantity);
+        decimal averageTicket = totalOperations > 0 ? totalRevenue / totalOperations : 0;
+        int productsWithoutCost = await _productRepo.GetCountWithoutCostAsync(cancellationToken);
         
         decimal totalReciables = await _receivableRepository.GetTotalPendingBalanceAsync(cancellationToken);
         decimal totalPayables = await _purchaseRepository.GetTotalPendingPayableBalanceAsync(cancellationToken);
@@ -100,7 +113,12 @@ public class FinancialService : IFinancialService
             SafeWithdrawal = safeWithdrawal,
             TotalReceivables = totalReciables,
             TotalPayables = totalPayables,
-            RealCashFlow = realCashFlow
+            RealCashFlow = realCashFlow,
+            TotalOperations = totalOperations,
+            AverageTicket = averageTicket,
+            TotalUnitsSold = totalUnits,
+            ProductsWithoutCost = productsWithoutCost,
+            InitialCapital = initialCapital
         };
     }
 }

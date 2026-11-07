@@ -73,6 +73,17 @@ public class ProductRepository : IProductRepository
         await _context.Products.AddAsync(product, cancellationToken);
     }
 
+    public async Task<string?> GetSettingValueAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var setting = await _context.Settings.FirstOrDefaultAsync(s => s.Key == key, cancellationToken);
+        return setting?.Value;
+    }
+
+    public async Task<int> GetCountWithoutCostAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Products.CountAsync(p => p.Cost == 0 && p.IsActive, cancellationToken);
+    }
+
     public void Update(Product product)
     {
         _context.Products.Update(product);

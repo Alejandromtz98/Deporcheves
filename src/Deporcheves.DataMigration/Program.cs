@@ -8,8 +8,8 @@ using System.Globalization;
 // ============================================================
 // CONFIGURACIÓN DE LA BASE DE DATOS (CAMBIA ESTO SI ES NECESARIO)
 // ============================================================
-//var connectionString = "Host=localhost;Port=5432;Database=deporcheves;Username=postgres;Password=postgres";
-var connectionString = "Host=ep-lingering-resonance-b4xobjfb-pooler.c-6.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_6u3yYwlMjWFT;SSL Mode=Require;Channel Binding=Require";
+var connectionString = "Host=localhost;Port=5432;Database=deporcheves;Username=postgres;Password=postgres";
+//var connectionString = "Host=ep-lingering-resonance-b4xobjfb-pooler.c-6.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_6u3yYwlMjWFT;SSL Mode=Require;Channel Binding=Require";
 
 var optionsBuilder = new DbContextOptionsBuilder<DeporchevesDbContext>();
 optionsBuilder.UseNpgsql(connectionString);
@@ -292,26 +292,31 @@ try
     }
     context.SaveChanges();
 
-    // 11. Migrar Nómina
-    Console.WriteLine("Migrando Nóminas...");
+        // 11. Migrar Nómina (Hacia la tabla de Expenses)
+    Console.WriteLine("Migrando Nóminas a Gastos...");
     foreach (var row in payrollSheet.RowsUsed().Skip(1))
     {
         if (string.IsNullOrEmpty(row.Cell(1).GetString())) continue;
+        
         var empName = row.Cell(5).GetString();
         if (!employeeMap.ContainsKey(empName)) continue;
 
-        context.Payrolls.Add(new Payroll
+        // Extraemos la fecha de pago (columna 4)
+        var paymentDate = ParseDate(row.Cell(4).GetString());
+
+        var expense = new Expense
         {
+            Date = paymentDate,
+            Category = "NÓMINA",
+            Description = $"Pago de Nómina - {empName}",
+            Amount = ParseDecimal(row.Cell(11).GetString()), // ImportePagado
+            PaymentMethod = row.Cell(13).GetString(), // FormaPago
+            Status = ExpenseStatus.Paid,
             EmployeeId = employeeMap[empName],
-            PeriodStart = ParseDate(row.Cell(2).GetString()),
-            PeriodEnd = ParseDate(row.Cell(3).GetString()),
-            PaymentDate = ParseDate(row.Cell(4).GetString()),
-            BaseSalary = ParseDecimal(row.Cell(6).GetString()),
-            TotalCalculated = ParseDecimal(row.Cell(10).GetString()),
-            AmountPaid = ParseDecimal(row.Cell(11).GetString()),
-            Balance = ParseDecimal(row.Cell(12).GetString()),
-            Status = row.Cell(14).GetString()
-        });
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Expenses.Add(expense);
     }
     context.SaveChanges();
 
@@ -343,6 +348,26 @@ try
         ));
     }
     context.SaveChanges();
+        // 13. SINCRONIZAR STOCK REAL (Basado en el Kardex)
+    Console.WriteLine("Sincronizando stock real de productos con el Kardex...");
+    
+    var allProducts = context.Products.ToList();
+    foreach (var prod in allProducts)
+    {
+        // Sumamos las entradas (positivas) y salidas (negativas) de sus movimientos
+        var realStock = context.InventoryMovements
+            .Where(m => m.ProductId == prod.Id)
+            .Sum(m => m.Quantity);
+
+        // Si el Kardex tiene movimientos, sobreescribimos el stock de la foto.
+        // Si está vacío, mantenemos el que traía el catálogo.
+        if (context.InventoryMovements.Any(m => m.ProductId == prod.Id))
+        {
+            prod.Stock = realStock;
+        }
+    }
+    context.SaveChanges();
+    Console.WriteLine("Stock sincronizado correctamente.");
 
     Console.WriteLine("¡Migración completada exitosamente!");
 }

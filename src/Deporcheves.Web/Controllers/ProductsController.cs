@@ -16,9 +16,35 @@ public class ProductsController : Controller
         _productRepository = productRepository;
     }
 
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(string? search, string? sortOrder, CancellationToken cancellationToken)
     {
+        // 1. Traer todos los productos activos
         var products = await _productRepository.GetAllActiveAsync(cancellationToken);
+
+        // 2. Filtrar por búsqueda
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.ToLower();
+            products = products.Where(p => p.Name.ToLower().Contains(term) || p.Sku.ToLower().Contains(term)).ToList();
+        }
+
+        // 3. Ordenamiento
+        ViewData["CurrentSort"] = sortOrder;
+        ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+        ViewData["PriceSortParm"] = sortOrder == "price" ? "price_desc" : "price";
+        ViewData["StockSortParm"] = sortOrder == "stock" ? "stock_desc" : "stock";
+
+        products = sortOrder switch
+        {
+            "name_desc" => products.OrderByDescending(p => p.Name).ToList(),
+            "price" => products.OrderBy(p => p.Price).ToList(),
+            "price_desc" => products.OrderByDescending(p => p.Price).ToList(),
+            "stock" => products.OrderBy(p => p.Stock).ToList(),
+            "stock_desc" => products.OrderByDescending(p => p.Stock).ToList(),
+            _ => products.OrderBy(p => p.Name).ToList(), // Por defecto orden alfabético
+        };
+
+        ViewData["CurrentFilter"] = search;
         return View(products);
     }
 

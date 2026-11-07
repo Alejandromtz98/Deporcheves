@@ -51,6 +51,9 @@ El proyecto sigue los principios de **Clean Architecture** simplificada, dividid
    -docker compose up -d db
    -dotnet run --project src/Deporcheves.Web //Para migrar tablas y usuario inicial
    -dotnet run --project src/Deporcheves.DataMigration/Deporcheves.DataMigration.csproj // limpiar y migrar
+   //Para NEON
+   -DROP SCHEMA public CASCADE;
+    CREATE SCHEMA public;
    -dotnet run --project src/Deporcheves.Web // Levantar proyecto con datos
 ### Sincronizar Local a NEON
    -docker exec -i deporcheves-db pg_dump -U postgres -d deporcheves --clean > backup_local.sql // generar .sql

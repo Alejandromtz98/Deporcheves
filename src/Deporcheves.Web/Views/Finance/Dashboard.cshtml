@@ -1,47 +1,35 @@
 @model Deporcheves.Application.Dtos.Finance.FinancialDashboardDto
 @{ ViewData["Title"] = "Dashboard Financiero"; }
 
-@{
-    // Calcular fechas para atajos
-    var today = DateTime.Today;
-    // Asumiendo que la semana empieza en Lunes
-    var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
-    var thisWeekStart = today.AddDays(-1 * diff);
-    var lastWeekStart = thisWeekStart.AddDays(-7);
-    var lastWeekEnd = thisWeekStart.AddDays(-1);
-}
-
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
         <h2 class="mb-1">Dashboard Financiero</h2>
         <div class="btn-group btn-group-sm">
-            <a asp-action="Dashboard" asp-route-startDate="@thisWeekStart.ToString("yyyy-MM-dd")" asp-route-endDate="@today.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">Esta Semana</a>
-            <a asp-action="Dashboard" asp-route-startDate="@lastWeekStart.ToString("yyyy-MM-dd")" asp-route-endDate="@lastWeekEnd.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">Semana Pasada</a>
+            <a asp-action="Dashboard" asp-route-startDate="@ViewData["StartDate"]" class="btn btn-outline-secondary active">Periodo Seleccionado</a>
         </div>
     </div>
     
-    <div class="d-flex gap-2 align-items-center">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
         <a asp-action="FixedCosts" class="btn btn-outline-primary btn-sm">Gestionar Costos Fijos</a>
         <a asp-action="ExportCsv" asp-route-startDate="@ViewData["StartDate"]" asp-route-endDate="@ViewData["EndDate"]" class="btn btn-success btn-sm">Exportar CSV</a>
         
         <form method="get" class="d-flex gap-2 align-items-center bg-light p-2 rounded shadow-sm mb-0">
-            <label class="fw-bold mb-0 text-nowrap">Desde:</label>
+            <label class="fw-bold mb-0 text-nowrap small">Desde:</label>
             <input type="date" name="startDate" value="@ViewData["StartDate"]" class="form-control form-control-sm" />
-            <label class="fw-bold mb-0 text-nowrap">Hasta:</label>
+            <label class="fw-bold mb-0 text-nowrap small">Hasta:</label>
             <input type="date" name="endDate" value="@ViewData["EndDate"]" class="form-control form-control-sm" />
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
         </form>
     </div>
 </div>
 
-<!-- Tarjetas de KPIs Principales -->
-<!-- Fila 1: Resultados Operativos -->
+<!-- FILA 1: Indicadores Principales -->
 <div class="row mb-3">
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-success text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Utilidad Neta (Contable)</h6>
-                <h2 class="mb-0">@Model.NetProfit.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Utilidad Neta (Contable)</h6>
+                <h3 class="mb-0">@Model.NetProfit.ToString("C")</h3>
                 <small>Margen: @Model.GrossMarginPercentage.ToString("N1")%</small>
             </div>
         </div>
@@ -49,8 +37,8 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-primary text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Flujo de Caja Real</h6>
-                <h2 class="mb-0">@Model.RealCashFlow.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Flujo de Caja Real</h6>
+                <h3 class="mb-0">@Model.RealCashFlow.ToString("C")</h3>
                 <small>Efectivo neto generado</small>
             </div>
         </div>
@@ -58,8 +46,8 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-warning text-dark h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Retiro Seguro Sugerido</h6>
-                <h2 class="mb-0">@Model.SafeWithdrawal.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Retiro Seguro Sugerido</h6>
+                <h3 class="mb-0">@Model.SafeWithdrawal.ToString("C")</h3>
                 <small>Libre de deudas e inventario</small>
             </div>
         </div>
@@ -67,21 +55,21 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-info text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Valor del Inventario</h6>
-                <h2 class="mb-0">@Model.InventoryValue.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Valor del Inventario</h6>
+                <h3 class="mb-0">@Model.InventoryValue.ToString("C")</h3>
                 <small>Capital atrapado en stock</small>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Fila 2: Deudas -->
+<!-- FILA 2: Deudas y Equilibrio -->
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-secondary text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Cuentas por Cobrar</h6>
-                <h2 class="mb-0">@Model.TotalReceivables.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Cuentas por Cobrar</h6>
+                <h3 class="mb-0">@Model.TotalReceivables.ToString("C")</h3>
                 <small>Dinero fiado (Por cobrar)</small>
             </div>
         </div>
@@ -89,8 +77,8 @@
     <div class="col-md-3">
         <div class="card shadow-sm border-0 bg-dark text-white h-100">
             <div class="card-body">
-                <h6 class="text-uppercase mb-2">Cuentas por Pagar</h6>
-                <h2 class="mb-0">@Model.TotalPayables.ToString("C")</h2>
+                <h6 class="text-uppercase mb-2 small">Cuentas por Pagar</h6>
+                <h3 class="mb-0">@Model.TotalPayables.ToString("C")</h3>
                 <small>Deuda con proveedores</small>
             </div>
         </div>
@@ -98,7 +86,7 @@
     <div class="col-md-6">
         <div class="card shadow-sm border-0 bg-light h-100">
             <div class="card-body d-flex flex-column justify-content-center">
-                <h6 class="text-uppercase text-muted mb-2">Punto de Equilibrio (Mensual)</h6>
+                <h6 class="text-uppercase text-muted mb-2 small">Punto de Equilibrio (Mensual)</h6>
                 <h3 class="mb-0">@Model.BreakEvenPoint.ToString("C")</h3>
                 <small class="text-muted">Costos Fijos: @Model.MonthlyFixedCosts.ToString("C")</small>
             </div>
@@ -106,9 +94,59 @@
     </div>
 </div>
 
+<!-- FILA 3: Inversión y KPIs Operativos -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-secondary text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2 small">Capital Inicial</h6>
+                <h3 class="mb-0">@Model.InitialCapital.ToString("C")</h3>
+                <small>Inversión total</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-dark text-white h-100">
+            <div class="card-body">
+                <h6 class="text-uppercase mb-2 small">Retorno (ROI)</h6>
+                <h3 class="mb-0">@Model.ReturnOnInvestment.ToString("N1")%</h3>
+                <small>Recuperación de inversión</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-light h-100">
+            <div class="card-body">
+                <div class="row text-center h-100 align-items-center">
+                    <div class="col-4 border-end">
+                        <h6 class="text-muted small mb-1">Operaciones</h6>
+                        <h4 class="mb-0">@Model.TotalOperations</h4>
+                    </div>
+                    <div class="col-4 border-end">
+                        <h6 class="text-muted small mb-1">Ticket Promedio</h6>
+                        <h4 class="mb-0">@Model.AverageTicket.ToString("C")</h4>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-muted small mb-1">Unidades Vendidas</h6>
+                        <h4 class="mb-0">@Model.TotalUnitsSold</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerta de productos sin costo -->
+@if (Model.ProductsWithoutCost > 0)
+{
+    <div class="alert alert-warning shadow-sm">
+        <strong>⚠️ Alerta de Fiabilidad:</strong> Hay @Model.ProductsWithoutCost producto(s) activos sin costo registrado. La utilidad mostrada podría no ser exacta hasta que actualices sus costos.
+    </div>
+}
+
 <div class="row">
-    <!-- Gráfico de Ingresos vs Costos -->
-    <div class="col-md-8">
+    <!-- Gráfico -->
+    <div class="col-md-8 mb-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-dark text-white">
                 Flujo Financiero del Periodo
@@ -119,8 +157,8 @@
         </div>
     </div>
     
-    <!-- Desglose en Tabla -->
-    <div class="col-md-4">
+    <!-- Estado de Resultados -->
+    <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-secondary text-white">
                 Estado de Resultados
@@ -156,14 +194,12 @@
 </div>
 
 @section Scripts {
-    <!-- Cargar Chart.js desde CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const ctx = document.getElementById('financialChart').getContext('2d');
             
-            // Datos inyectados desde Razor
             const revenue = @Html.Raw(Model.TotalRevenue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
             const cogs = @Html.Raw(Model.TotalCogs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
             const opex = @Html.Raw(Model.TotalOpex.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
@@ -177,10 +213,10 @@
                         label: 'Monto ($)',
                         data: [revenue, cogs, opex, netProfit],
                         backgroundColor: [
-                            'rgba(25, 135, 84, 0.8)',  // Verde (Ingresos)
-                            'rgba(220, 53, 69, 0.8)',  // Rojo (COGS)
-                            'rgba(255, 193, 7, 0.8)',  // Amarillo (OPEX)
-                            'rgba(13, 110, 253, 0.8)'  // Azul (Utilidad)
+                            'rgba(25, 135, 84, 0.8)',
+                            'rgba(220, 53, 69, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(13, 110, 253, 0.8)'
                         ],
                         borderColor: [
                             'rgba(25, 135, 84, 1)',

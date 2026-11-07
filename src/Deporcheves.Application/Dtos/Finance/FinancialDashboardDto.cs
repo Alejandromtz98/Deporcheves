@@ -21,4 +21,10 @@ public class FinancialDashboardDto
     public decimal TotalReceivables { get; set; } // Dinero que nos deben (CxC)
     public decimal TotalPayables { get; set; }    // Dinero que debemos (CxP)
     public decimal RealCashFlow { get; set; }     // Efectivo real generado en el periodo
+    public int TotalOperations { get; set; }
+    public decimal AverageTicket { get; set; }
+    public int TotalUnitsSold { get; set; }
+    public int ProductsWithoutCost { get; set; }
+    public decimal InitialCapital { get; set; }
+    public decimal ReturnOnInvestment => InitialCapital > 0 ? (NetProfit / InitialCapital) * 100 : 0;
 }

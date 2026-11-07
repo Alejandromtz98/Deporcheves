@@ -7,9 +7,9 @@
 <p class="text-muted">Usa este módulo para Renta, Luz, Agua, Internet y Nómina. Si pagas en efectivo de la caja, regístralo en la pestaña "Caja".</p>
 
 <div class="row">
-    <!-- Formulario de Registro -->
-    <div class="col-md-4">
-        <div class="card shadow-sm mb-3">
+    <!-- Formulario de Registro (Izquierda) -->
+    <div class="col-lg-4 col-md-12 mb-4">
+        <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">Registrar Gasto / Pago</div>
             <div class="card-body">
                 <form asp-action="Create" method="post">
@@ -30,25 +30,17 @@
                         </select>
                     </div>
 
-                    <!-- Select de Empleados (Oculto por defecto) -->
                     <div class="mb-2" id="employeeDiv" style="display: none;">
                         <label class="form-label text-primary fw-bold">Seleccionar Empleado</label>
                         <select name="employeeId" id="employeeSelect" class="form-select">
                             <option value="">-- Selecciona --</option>
-                            <div class="mb-2" id="employeeDiv" style="display: none;">
-                                <label class="form-label text-primary fw-bold">Seleccionar Empleado</label>
-                                <select name="employeeId" id="employeeSelect" class="form-select">
-                                    <option value="">-- Selecciona --</option>
-                                    @{
-                                        // Casteamos de forma segura. Si es null, creamos una lista vacía.
-                                        var employeesList = ViewBag.Employees as List<Deporcheves.Domain.Entities.Employee> ?? new List<Deporcheves.Domain.Entities.Employee>();
-                                        foreach (var emp in employeesList)
-                                        {
-                                            <option value="@emp.Id">@emp.Name (Sueldo: @emp.BaseWeeklySalary.ToString("C"))</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
+                            @if (ViewBag.Employees != null)
+                            {
+                                foreach (var emp in ViewBag.Employees as List<Deporcheves.Domain.Entities.Employee>)
+                                {
+                                    <option value="@emp.Id">@emp.Name (Sueldo: @emp.BaseWeeklySalary.ToString("C"))</option>
+                                }
+                            }
                         </select>
                     </div>
 
@@ -60,7 +52,7 @@
                         <label class="form-label">Monto</label>
                         <input type="number" name="amount" step="0.01" min="0.01" class="form-control" required />
                     </div>
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label">Forma de Pago</label>
                         <select name="paymentMethod" class="form-select">
                             <option value="Transferencia">Transferencia</option>
@@ -74,8 +66,8 @@
         </div>
     </div>
 
-    <!-- Historial de Gastos -->
-    <div class="col-md-8">
+    <!-- Historial de Gastos (Derecha) -->
+    <div class="col-lg-8 col-md-12">
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white">Historial de Gastos (Últimos 100)</div>
             <div class="card-body p-0">
@@ -85,32 +77,34 @@
                 }
                 else
                 {
-                    <table class="table table-striped table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Categoría</th>
-                                <th>Descripción</th>
-                                <th>Método</th>
-                                <th>Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var e in Model)
-                            {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm mb-0">
+                            <thead>
                                 <tr>
-                                    <td>@e.Date.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        @if(e.Category == "NÓMINA") { <span class="badge bg-info">NÓMINA</span> }
-                                        else { @e.Category }
-                                    </td>
-                                    <td>@e.Description</td>
-                                    <td>@e.PaymentMethod</td>
-                                    <td class="text-danger fw-bold">@e.Amount.ToString("C")</td>
+                                    <th>Fecha</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Método</th>
+                                    <th class="text-end">Monto</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var e in Model)
+                                {
+                                    <tr>
+                                        <td>@e.Date.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @if(e.Category == "NÓMINA") { <span class="badge bg-info">NÓMINA</span> }
+                                            else { @e.Category }
+                                        </td>
+                                        <td>@e.Description</td>
+                                        <td>@e.PaymentMethod</td>
+                                        <td class="text-danger fw-bold text-end">@e.Amount.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
             </div>
         </div>
