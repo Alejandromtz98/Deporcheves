@@ -12,6 +12,7 @@ public class FinancialService : IFinancialService
     private readonly IProductRepository _productRepo;
     private readonly IReceivableRepository _receivableRepository;
     private readonly IPurchaseRepository _purchaseRepository;
+    private readonly IExpenseRepository _expenseRepository; // Usamos el repositorio
 
     public FinancialService(
         ISaleRepository saleRepo, 
@@ -19,7 +20,8 @@ public class FinancialService : IFinancialService
         IFixedCostRepository fixedCostRepo,
         IProductRepository productRepo,
         IReceivableRepository receivableRepository,
-        IPurchaseRepository purchaseRepository)
+        IPurchaseRepository purchaseRepository,
+        IExpenseRepository expenseRepository) // Inyectado
     {
         _saleRepo = saleRepo;
         _cashRepo = cashRepo;
@@ -27,65 +29,59 @@ public class FinancialService : IFinancialService
         _productRepo = productRepo;
         _receivableRepository = receivableRepository;
         _purchaseRepository = purchaseRepository;
+        _expenseRepository = expenseRepository;
     }
 
     public async Task<FinancialDashboardDto> GetDashBoardAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
-        // 1. Obtener ventas y gastos del periodo
-        // Nota: Asumimos que GetByDateRangeAsync trae los items (Include)
         var sales = await _saleRepo.GetByDateRangeAsync(startDate, endDate, cancellationToken);
         
-        // Los gastos operativos (OPEX) están en los movimientos de caja. 
-        // Para simplificar, sumaremos los gastos de todas las sesiones en el rango de fechas.
+        // 1. Gastos en efectivo desde Caja
         var allSessions = await _cashRepo.GetSessionsByDateRangeAsync(startDate, endDate, cancellationToken);
-        var totalOpex = allSessions
+        var cashOpex = allSessions
             .SelectMany(s => s.Movements)
             .Where(m => m.Type == CashMovementType.Expense)
             .Sum(m => m.Amount);
+
+        // 2. Gastos desde la nueva tabla (Renta, Luz, Nómina)
+        var dbExpenses = await _expenseRepository.GetByDateRangeAsync(startDate, endDate, cancellationToken);
+        var dbOpex = dbExpenses
+            .Where(e => e.Status == ExpenseStatus.Paid)
+            .Sum(e => e.Amount);
+
+        var totalOpex = cashOpex + dbOpex;
+
         var purchases = await _purchaseRepository.GetByDateRangeAsync(startDate, endDate, cancellationToken);
         decimal totalPaidPurchases = purchases.Sum(p => p.PaidAmount);
         decimal totalFiadoSales = sales.Sum(s => s.AmountFiado);
 
-        // 2. Calcular Ingresos y COGS
         decimal totalRevenue = sales.Sum(s => s.Total);
         decimal realCashFlow = (totalRevenue - totalFiadoSales) - totalPaidPurchases - totalOpex;
         
-        // COGS: Cruzamos los items vendidos con el costo actual del producto
         decimal totalCogs = 0;
         foreach (var sale in sales)
         {
             foreach (var item in sale.Items)
             {
                 var product = await _productRepo.GetByIdAsync(item.ProductId, cancellationToken);
-                if (product != null)
-                {
-                    totalCogs += (product.Cost * item.Quantity);
-                }
+                if (product != null) totalCogs += (product.Cost * item.Quantity);
             }
         }
 
-        // 3. Calcular Utilidades
         decimal grossProfit = totalRevenue - totalCogs;
         decimal netProfit = grossProfit - totalOpex;
+        
         decimal totalReciables = await _receivableRepository.GetTotalPendingBalanceAsync(cancellationToken);
         decimal totalPayables = await _purchaseRepository.GetTotalPendingPayableBalanceAsync(cancellationToken);
 
-        // 4. Calcular Punto de Equilibrio
         var fixedCosts = await _fixedCostRepo.GetAllActiveAsync(cancellationToken);
         decimal monthlyFixedCosts = fixedCosts.Sum(c => c.MonthlyAmount);
         
         decimal grossMarginRatio = totalRevenue > 0 ? (grossProfit / totalRevenue) : 0;
-        // Evitar división por cero
-        decimal breakEvenPoint = grossMarginRatio > 0 
-            ? (monthlyFixedCosts / grossMarginRatio) 
-            : 0;
+        decimal breakEvenPoint = grossMarginRatio > 0 ? (monthlyFixedCosts / grossMarginRatio) : 0;
 
-        // 5. Calcular Retiro Seguro (FCF)
         decimal inventoryValue = await _productRepo.GetTotalInventoryValueAsync(cancellationToken);
-        
-        // Colchón de seguridad: 1 mes de costos fijos
         decimal safetyBuffer = monthlyFixedCosts; 
-        
         decimal safeWithdrawal = netProfit - inventoryValue - safetyBuffer;
         if (safeWithdrawal < 0) safeWithdrawal = 0;
 

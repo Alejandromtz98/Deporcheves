@@ -1,0 +1,40 @@
+@model IReadOnlyList<Deporcheves.Domain.Entities.Employee>
+@{ ViewData["Title"] = "Empleados"; }
+
+<h2>Empleados</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">Nuevo Empleado</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-2">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sueldo Semanal Base</label>
+                        <input type="number" name="baseWeeklySalary" step="0.01" min="0" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Guardar Empleado</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <table class="table table-striped table-sm">
+            <thead><tr><th>Nombre</th><th>Sueldo Semanal</th><th>Estado</th></tr></thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.Name</td>
+                        <td>@e.BaseWeeklySalary.ToString("C")</td>
+                        <td><span class="badge bg-success">Activo</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

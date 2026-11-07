@@ -1,5 +1,3 @@
-using Deporcheves.Domain.Enums;
-
 namespace Deporcheves.Domain.Entities;
 
 public class Expense
@@ -11,8 +9,12 @@ public class Expense
     public decimal Amount { get; set; }
     public DateTime? DueDate { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
-    public ExpenseStatus Status { get; set; }
+    public Enums.ExpenseStatus Status { get; set; }
     public string? Reference { get; set; }
     public string? User { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // NUEVO: Relación opcional para nómina
+    public int? EmployeeId { get; set; }
+    public Employee? Employee { get; set; }
 }

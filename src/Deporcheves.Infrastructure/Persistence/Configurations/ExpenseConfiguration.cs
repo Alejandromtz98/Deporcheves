@@ -11,5 +11,9 @@ public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
         builder.Property(x => x.Category).HasMaxLength(50);
         builder.Property(x => x.Description).HasMaxLength(300);
         builder.Property(x => x.Status).HasConversion<int>();
+        builder.HasOne(e => e.Employee)
+       .WithMany()
+       .HasForeignKey(e => e.EmployeeId)
+       .OnDelete(DeleteBehavior.SetNull);
     }
 }
