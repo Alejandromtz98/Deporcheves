@@ -73,9 +73,14 @@ public class FinancialService : IFinancialService
 
         decimal initialCapital = 0;
         var capStr = await _productRepo.GetSettingValueAsync("CAPITAL_INICIAL", cancellationToken);
-        if (decimal.TryParse(capStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsedCap))
+        if (!string.IsNullOrWhiteSpace(capStr))
         {
-            initialCapital = parsedCap;
+            // Limpiamos comas o símbolos para asegurar la conversión
+            var cleanCapStr = capStr.Replace(",", "").Replace("$", "").Trim();
+            if (decimal.TryParse(cleanCapStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsedCap))
+            {
+                initialCapital = parsedCap;
+            }
         }
 
                 // KPIs Operativos

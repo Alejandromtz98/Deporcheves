@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 // ============================================================
-// CONFIGURACIÓN DE LA BASE DE DATOS (CAMBIA ESTO SI ES NECESARIO)
+// CONFIGURACIÓN DE LA BASE DE DATOS
 // ============================================================
 //var connectionString = "Host=localhost;Port=5432;Database=deporcheves;Username=postgres;Password=postgres";
 var connectionString = "Host=ep-lingering-resonance-b4xobjfb-pooler.c-6.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_6u3yYwlMjWFT;SSL Mode=Require;Channel Binding=Require";
@@ -16,20 +16,30 @@ optionsBuilder.UseNpgsql(connectionString);
 
 using var context = new DeporchevesDbContext(optionsBuilder.Options);
 
-// Abrimos el archivo Excel UNA SOLA VEZ y lo mantenemos abierto
 using var workbook = new XLWorkbook("src/Deporcheves.DataMigration/Datos.xlsx");
 
 Console.WriteLine("Iniciando Migración ETL (Extract, Transform, Load)...");
 
 try
 {
-    // 1. Cargar Configuraciones
+        // 1. Cargar Configuraciones (Settings)
     Console.WriteLine("Migrando Configuraciones...");
     var configSheet = workbook.Worksheet("CONFIG");
     foreach (var row in configSheet.RowsUsed().Skip(1))
     {
-        var key = row.Cell(1).GetString();
-        var val = row.Cell(2).GetString();
+        var key = row.Cell(1).GetString().Trim();
+        string val = "";
+        
+        // Leemos el valor dependiendo del tipo de celda (Número o Texto)
+        if (row.Cell(2).DataType == XLDataType.Number)
+        {
+            val = row.Cell(2).GetDouble().ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            val = row.Cell(2).GetString().Trim();
+        }
+
         var desc = row.Cell(3).GetString();
         if (!string.IsNullOrEmpty(key) && !context.Settings.Any(s => s.Key == key))
         {
@@ -37,6 +47,48 @@ try
         }
     }
     context.SaveChanges();
+
+    // 1.1 Cargar Costos Fijos (A partir de la tabla Settings)
+    Console.WriteLine("Migrando Costos Fijos...");
+    var fixedCosts = new List<FixedCost>();
+    
+    // Función local robusta para limpiar y convertir a decimal
+    decimal GetConfigValue(string key)
+    {
+        var strVal = context.Settings.FirstOrDefault(s => s.Key == key)?.Value;
+        if (string.IsNullOrWhiteSpace(strVal)) return 0;
+        
+        // Limpiamos cualquier coma o símbolo de moneda que se haya colado
+        var cleanVal = strVal.Replace(",", "").Replace("$", "").Trim();
+        
+        if (decimal.TryParse(cleanVal, NumberStyles.Any, CultureInfo.InvariantCulture, out var res)) return res;
+        return 0;
+    }
+
+    var renta = GetConfigValue("RENTA_MENSUAL");
+    if (renta > 0) fixedCosts.Add(new FixedCost("Renta", renta));
+
+    var agua = GetConfigValue("AGUA_MENSUAL");
+    if (agua > 0) fixedCosts.Add(new FixedCost("Agua", agua));
+
+    var internet = GetConfigValue("INTERNET_MENSUAL");
+    if (internet > 0) fixedCosts.Add(new FixedCost("Internet", internet));
+
+    var electricidad = GetConfigValue("ELECTRICIDAD_MENSUAL");
+    if (electricidad > 0) fixedCosts.Add(new FixedCost("Electricidad", electricidad));
+
+    var sueldoSemanal = GetConfigValue("SUELDO_SEMANAL");
+    if (sueldoSemanal > 0) 
+    {
+        // Convertimos el sueldo semanal a un estimado mensual (x4 semanas)
+        fixedCosts.Add(new FixedCost("Sueldo Empleado (Estimado Mensual)", sueldoSemanal * 4));
+    }
+
+    if (fixedCosts.Any())
+    {
+        context.FixedCosts.AddRange(fixedCosts);
+        context.SaveChanges();
+    }
 
     // 2. Migrar Proveedores
     Console.WriteLine("Migrando Proveedores...");
@@ -59,13 +111,14 @@ try
         context.SaveChanges();
         supplierMap[idExcel] = supplier.Id;
     }
-        // 2.1 Crear Proveedor Genérico por si hay compras sin proveedor
+    
+    // 2.1 Crear Proveedor Genérico
     var genericSupplier = new Supplier { Name = "Proveedor Genérico (Migración)", IsActive = true };
     context.Suppliers.Add(genericSupplier);
     context.SaveChanges();
     var genericSupplierId = genericSupplier.Id;
 
-    // 3. Migrar Clientes (Para los fiados)
+    // 3. Migrar Clientes
     Console.WriteLine("Creando Cliente Histórico para Fiados...");
     var historicalCustomer = new Customer { Name = "Cliente Histórico (Migración)" };
     if (!context.Customers.Any(c => c.Name == historicalCustomer.Name))
@@ -120,7 +173,7 @@ try
         employeeMap[name] = employee.Id;
     }
 
-    // 6. Migrar Cajas (Turnos Históricos)
+    // 6. Migrar Cajas
     Console.WriteLine("Migrando Cajas y Turnos...");
     var cashSessionMap = new Dictionary<string, int>();
     var cashSheet = workbook.Worksheet("CAJA");
@@ -144,7 +197,7 @@ try
         cashSessionMap[date.ToString("yyyy-MM-dd")] = session.Id;
     }
 
-        // 7. Migrar Compras
+    // 7. Migrar Compras
     Console.WriteLine("Migrando Compras...");
     var purchaseSheet = workbook.Worksheet("COMPRAS");
     var purchaseGroups = purchaseSheet.RowsUsed().Skip(1)
@@ -155,7 +208,6 @@ try
     {
         var firstRow = group.First();
         
-        // Asignamos el proveedor AQUÍ DENTRO del bucle
         var supplierId = supplierMap.ContainsKey(firstRow.Cell(3).GetString()) 
             ? supplierMap[firstRow.Cell(3).GetString()] 
             : genericSupplierId;
@@ -163,7 +215,7 @@ try
         var purchase = new Purchase
         {
             PurchaseNumber = group.Key,
-            SupplierId = supplierId, // Usamos la variable correctamente (con I mayúscula)
+            SupplierId = supplierId,
             CreatedAt = ParseDate(firstRow.Cell(2).GetString()),
             Notes = "Compra migrada del Excel",
         };
@@ -206,7 +258,6 @@ try
         context.SaveChanges();
     }
 
-
     // 8. Migrar Ventas
     Console.WriteLine("Migrando Ventas...");
     var salesEncSheet = workbook.Worksheet("VENTAS_ENC");
@@ -221,16 +272,24 @@ try
         var date = ParseDate(row.Cell(2).GetString());
         var dateKey = date.ToString("yyyy-MM-dd");
         var sessionId = cashSessionMap.ContainsKey(dateKey) ? cashSessionMap[dateKey] : context.CashSessions.FirstOrDefault()?.Id;
+        
+        var totalVenta = ParseDecimal(row.Cell(5).GetString());
+        var montoFiado = ParseDecimal(row.Cell(9).GetString());
+        var montoEfectivo = totalVenta - montoFiado;
 
         var sale = new Sale
         {
             SaleNumber = saleNumber,
             CreatedAt = date,
-            PaymentMethod = PaymentMethod.Cash,
             CashSessionId = sessionId,
-            AmountFiado = ParseDecimal(row.Cell(9).GetString()),
-            Total = ParseDecimal(row.Cell(5).GetString()),
-            CustomerId = ParseDecimal(row.Cell(9).GetString()) > 0 ? historicalCustomer.Id : null
+            
+            AmountCash = montoEfectivo,
+            AmountTransfer = 0,
+            AmountCard = 0,
+            AmountFiado = montoFiado,
+            
+            Total = totalVenta,
+            CustomerId = montoFiado > 0 ? historicalCustomer.Id : null
         };
 
         if (salesDetGroups.ContainsKey(saleNumber))
@@ -292,7 +351,7 @@ try
     }
     context.SaveChanges();
 
-        // 11. Migrar Nómina (Hacia la tabla de Expenses)
+    // 11. Migrar Nómina
     Console.WriteLine("Migrando Nóminas a Gastos...");
     foreach (var row in payrollSheet.RowsUsed().Skip(1))
     {
@@ -301,7 +360,6 @@ try
         var empName = row.Cell(5).GetString();
         if (!employeeMap.ContainsKey(empName)) continue;
 
-        // Extraemos la fecha de pago (columna 4)
         var paymentDate = ParseDate(row.Cell(4).GetString());
 
         var expense = new Expense
@@ -309,8 +367,8 @@ try
             Date = paymentDate,
             Category = "NÓMINA",
             Description = $"Pago de Nómina - {empName}",
-            Amount = ParseDecimal(row.Cell(11).GetString()), // ImportePagado
-            PaymentMethod = row.Cell(13).GetString(), // FormaPago
+            Amount = ParseDecimal(row.Cell(11).GetString()),
+            PaymentMethod = row.Cell(13).GetString(),
             Status = ExpenseStatus.Paid,
             EmployeeId = employeeMap[empName],
             CreatedAt = DateTime.UtcNow
@@ -348,19 +406,17 @@ try
         ));
     }
     context.SaveChanges();
-        // 13. SINCRONIZAR STOCK REAL (Basado en el Kardex)
+
+    // 13. SINCRONIZAR STOCK REAL
     Console.WriteLine("Sincronizando stock real de productos con el Kardex...");
     
     var allProducts = context.Products.ToList();
     foreach (var prod in allProducts)
     {
-        // Sumamos las entradas (positivas) y salidas (negativas) de sus movimientos
         var realStock = context.InventoryMovements
             .Where(m => m.ProductId == prod.Id)
             .Sum(m => m.Quantity);
 
-        // Si el Kardex tiene movimientos, sobreescribimos el stock de la foto.
-        // Si está vacío, mantenemos el que traía el catálogo.
         if (context.InventoryMovements.Any(m => m.ProductId == prod.Id))
         {
             prod.Stock = realStock;
@@ -392,7 +448,6 @@ DateTime ParseDate(string val)
     if (DateTime.TryParse(val, new CultureInfo("es-MX"), DateTimeStyles.None, out result) ||
         DateTime.TryParse(val, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
     {
-        // Forzamos que la fecha sea UTC para que PostgreSQL no lance excepción
         return DateTime.SpecifyKind(result, DateTimeKind.Utc);
     }
     return DateTime.UtcNow;
