@@ -1,7 +1,5 @@
 @model Deporcheves.Web.Models.PosViewModel
-@{
-    ViewData["Title"] = "Venta";
-}
+@{ ViewData["Title"] = "Venta"; }
 
 <h1>Punto de venta</h1>
 
@@ -9,50 +7,23 @@
 {
     <div class="alert alert-danger">@Model.ErrorMessage</div>
 }
-@if (Model.LowStockCount > 0)
-{
-    <div class="alert alert-warning">
-        Hay @Model.LowStockCount producto(s) con stock bajo el minimo.
-        <a asp-controller="Products" asp-action="Index" class="alert-link">Revisar productos</a>
-    </div>
-}
 
 <div class="row">
     <div class="col-md-7">
         <h4>Productos</h4>
-        <form asp-action="Index" method="get" class="mb-3">
+        
+        <!-- BUSCADOR SIN FORMULARIO (Para evitar recarga) -->
+        <div class="mb-3">
             <div class="input-group">
-                <input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Buscar por nombre o SKU..." />
-                <button type="submit" class="btn btn-outline-secondary">Buscar</button>
-                @if (!string.IsNullOrEmpty(Model.SearchTerm))
-                {
-                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-                }
+                <input type="text" id="searchInput" value="@Model.SearchTerm" class="form-control" placeholder="Buscar por nombre o SKU..." autocomplete="off" />
+                <button type="button" id="btnClearSearch" class="btn btn-outline-secondary">Limpiar</button>
             </div>
-        </form>
-        <table class="table table-sm table-hover">
-            <thead>
-                <tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Stock</th><th></th></tr>
-            </thead>
-            <tbody>
-                @foreach (var product in Model.Products)
-                {
-                    <tr class="@(product.IsBelowMinimumStock() ? "table-warning" : "")">
-                        <td>@product.Sku</td>
-                        <td>@product.Name</td>
-                        <td>@product.Price.ToString("C")</td>
-                        <td>@product.Stock</td>
-                        <td>
-                            <form asp-action="AddItem" method="post" class="d-flex gap-1">
-                                <input type="hidden" name="productId" value="@product.Id" />
-                                <input type="number" name="quantity" value="1" min="1" max="@product.Stock" class="form-control form-control-sm" style="width:70px;" />
-                                <button type="submit" class="btn btn-sm btn-primary">Agregar</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        </div>
+
+        <!-- CONTENEDOR QUE SE ACTUALIZARÁ POR AJAX -->
+        <div id="productTableContainer">
+            @await Html.PartialAsync("_ProductList", Model)
+        </div>
     </div>
 
     <div class="col-md-5">
@@ -65,7 +36,7 @@
         {
             <table class="table table-sm">
                 <thead>
-                    <tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr>
+                    <tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Desc.</th><th>Subtotal</th><th></th></tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model.Cart)
@@ -73,11 +44,13 @@
                         <tr>
                             <td>@item.ProductName</td>
                             <td>@item.Quantity</td>
+                            <td>@item.UnitPrice.ToString("C")</td>
+                            <td class="text-danger">-@item.Discount.ToString("C")</td>
                             <td>@item.Subtotal.ToString("C")</td>
                             <td>
                                 <form asp-action="RemoveItem" method="post">
                                     <input type="hidden" name="productId" value="@item.ProductId" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">X</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">X</button>
                                 </form>
                             </td>
                         </tr>
@@ -85,39 +58,130 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="2" class="text-end">Total:</th>
+                        <th colspan="4" class="text-end">Total:</th>
                         <th>@Model.CartTotal.ToString("C")</th>
                         <th></th>
                     </tr>
                 </tfoot>
             </table>
 
-            <form asp-action="Confirm" method="post">
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <label class="form-label mb-0">Método de pago (para el resto)</label>
-                        <select name="paymentMethod" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<Deporcheves.Domain.Enums.PaymentMethod>()"></select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label mb-0">Monto Fiado ($)</label>
-                        <input type="number" name="amountFiado" value="0" step="0.01" min="0" class="form-control form-control-sm" />
-                    </div>
-                </div>
-                
+            <form asp-action="Confirm" method="post" id="paymentForm">
                 <div class="mb-2">
-                    <label class="form-label mb-0">Cliente (Obligatorio si hay fiado)</label>
+                    <label class="form-label mb-0 small fw-bold">Cliente (Obligatorio si hay fiado)</label>
                     <select name="customerId" class="form-select form-select-sm">
-                        <option value="">-- Sin cliente (Pago completo) --</option>
+                        <option value="">-- Sin cliente --</option>
                         @foreach (var customer in Model.Customers)
                         {
                             <option value="@customer.Id">@customer.Name</option>
                         }
                     </select>
                 </div>
+                
+                <div class="row mb-2 g-1">
+                    <div class="col-6">
+                        <label class="form-label mb-0 small">Efectivo</label>
+                        <input type="number" name="amountCash" id="amountCash" step="0.01" min="0" value="@Model.CartTotal.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm payment-input" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label mb-0 small">Transferencia</label>
+                        <input type="number" name="amountTransfer" id="amountTransfer" step="0.01" min="0" value="0" class="form-control form-control-sm payment-input" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label mb-0 small">Tarjeta</label>
+                        <input type="number" name="amountCard" id="amountCard" step="0.01" min="0" value="0" class="form-control form-control-sm payment-input" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label mb-0 small text-danger fw-bold">Fiado</label>
+                        <input type="number" name="amountFiado" id="amountFiado" step="0.01" min="0" value="0" class="form-control form-control-sm payment-input border-danger" />
+                    </div>
+                </div>
 
-                <button type="submit" class="btn btn-success w-100 mt-2">Confirmar venta</button>
+                <div class="alert alert-info py-1 small mb-2">
+                    Total: <strong>@Model.CartTotal.ToString("C")</strong> | 
+                    Pagado: <strong id="totalPaid">$0.00</strong> | 
+                    Diferencia: <strong id="difference" class="text-danger">$0.00</strong>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 mt-2" id="btnConfirm">Confirmar venta</button>
                 <button type="submit" asp-action="ClearCart" class="btn btn-outline-secondary w-100 mt-1">Cancelar ticket</button>
             </form>
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // 1. Lógica de Búsqueda en Vivo con Fetch (Sin recargar la página)
+        const searchInput = document.getElementById('searchInput');
+        const tableContainer = document.getElementById('productTableContainer');
+        let searchTimer;
+
+        function fetchProducts(searchTerm) {
+            const url = new URL(window.location.href);
+            if (searchTerm) url.searchParams.set('search', searchTerm);
+            else url.searchParams.delete('search');
+
+            fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(response => response.text())
+                .then(html => {
+                    // El servidor nos devuelve el HTML completo, pero solo extraemos la tabla
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTable = doc.getElementById('productTableContainer').innerHTML;
+                    tableContainer.innerHTML = newTable;
+                });
+        }
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                fetchProducts(this.value);
+            }, 400); // Espera 400ms para no saturar el servidor
+        });
+
+        document.getElementById('btnClearSearch').addEventListener('click', function () {
+            searchInput.value = '';
+            fetchProducts('');
+            searchInput.focus();
+        });
+
+        // 2. Cálculo de Pagos Mixtos
+        function updatePaymentTotals() {
+            const total = @Model.CartTotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            let cash = parseFloat(document.getElementById('amountCash').value) || 0;
+            let transfer = parseFloat(document.getElementById('amountTransfer').value) || 0;
+            let card = parseFloat(document.getElementById('amountCard').value) || 0;
+            let fiado = parseFloat(document.getElementById('amountFiado').value) || 0;
+
+            let paid = cash + transfer + card + fiado;
+            let diff = total - paid;
+
+            document.getElementById('totalPaid').innerText = paid.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+            
+            let diffEl = document.getElementById('difference');
+            diffEl.innerText = diff.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+            
+            let btn = document.getElementById('btnConfirm');
+            if (Math.abs(diff) < 0.01) {
+                diffEl.className = "text-success fw-bold";
+                btn.disabled = false;
+            } else {
+                diffEl.className = "text-danger fw-bold";
+                btn.disabled = true; // Bloquea el botón si las cuentas no cuadran
+            }
+        }
+
+        document.querySelectorAll('.payment-input').forEach(input => {
+            input.addEventListener('input', updatePaymentTotals);
+        });
+
+        // Inicializar
+        document.addEventListener("DOMContentLoaded", function() {
+            if(document.getElementById('amountCash')) {
+                updatePaymentTotals();
+            }
+            // Mantener el foco en el buscador al cargar
+            searchInput.focus();
+        });
+    </script>
+}

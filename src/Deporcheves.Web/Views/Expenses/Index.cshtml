@@ -34,9 +34,10 @@
                         <label class="form-label text-primary fw-bold">Seleccionar Empleado</label>
                         <select name="employeeId" id="employeeSelect" class="form-select">
                             <option value="">-- Selecciona --</option>
-                            @if (ViewBag.Employees != null)
-                            {
-                                foreach (var emp in ViewBag.Employees as List<Deporcheves.Domain.Entities.Employee>)
+                            @{
+                                // Casteamos de forma segura. Si es null, creamos una lista vacía.
+                                var employeesList = ViewBag.Employees as List<Deporcheves.Domain.Entities.Employee> ?? new List<Deporcheves.Domain.Entities.Employee>();
+                                foreach (var emp in employeesList)
                                 {
                                     <option value="@emp.Id">@emp.Name (Sueldo: @emp.BaseWeeklySalary.ToString("C"))</option>
                                 }

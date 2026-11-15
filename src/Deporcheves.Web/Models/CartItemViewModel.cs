@@ -6,5 +6,8 @@ public class CartItemViewModel
     public string ProductName { get; set; } = string.Empty;
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
-    public decimal Subtotal => UnitPrice * Quantity;
+    public decimal Discount { get; set; } // NUEVO
+    
+    // El subtotal ahora resta el descuento
+    public decimal Subtotal => (UnitPrice * Quantity) - Discount;
 }

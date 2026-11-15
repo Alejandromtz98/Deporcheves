@@ -1,14 +1,15 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Deporcheves.Application.Abstractions.Persistence;
 using Deporcheves.Application.Dtos.Sales;
 using Deporcheves.Application.Services;
-using Deporcheves.Domain.Enums;
 using Deporcheves.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Deporcheves.Web.Controllers;
 
+[Authorize]
 public class SalesController : Controller
 {
     private const string CartSessionKey = "PosCart";
@@ -23,14 +24,14 @@ public class SalesController : Controller
         _customerRepository = customerRepository;
     }
 
-   public async Task<IActionResult> Index(string? search, CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(string? search, CancellationToken cancellationToken)
     {
         return View(await BuildPosViewModelAsync(null, cancellationToken, search));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddItem(int productId, int quantity, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddItem(int productId, int quantity, decimal discount, CancellationToken cancellationToken)
     {
         if (quantity <= 0)
             return View("Index", await BuildPosViewModelAsync("La cantidad debe ser mayor a cero.", cancellationToken));
@@ -41,7 +42,8 @@ public class SalesController : Controller
 
         var cart = GetCart();
         var existing = cart.FirstOrDefault(i => i.ProductId == productId);
-        var newQuantity = (existing?.Quantity ?? 0) + quantity;
+        
+        int newQuantity = (existing?.Quantity ?? 0) + quantity;
 
         if (newQuantity > product.Stock)
             return View("Index", await BuildPosViewModelAsync($"Stock insuficiente. Disponible: {product.Stock}.", cancellationToken));
@@ -53,12 +55,14 @@ public class SalesController : Controller
                 ProductId = product.Id,
                 ProductName = product.Name,
                 UnitPrice = product.Price,
-                Quantity = quantity
+                Quantity = quantity,
+                Discount = discount
             });
         }
         else
         {
             existing.Quantity = newQuantity;
+            existing.Discount += discount; // Sumamos el descuento si se agrega más del mismo producto
         }
 
         SaveCart(cart);
@@ -85,7 +89,7 @@ public class SalesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(PaymentMethod paymentMethod, int? customerId, decimal amountFiado, CancellationToken cancellationToken)
+    public async Task<IActionResult> Confirm(decimal amountCash, decimal amountTransfer, decimal amountCard, decimal amountFiado, int? customerId, CancellationToken cancellationToken)
     {
         var cart = GetCart();
         if (cart.Count == 0)
@@ -100,10 +104,17 @@ public class SalesController : Controller
 
         var request = new CreateSaleRequest
         {
-            PaymentMethod = paymentMethod,
             CustomerId = customerId,
+            AmountCash = amountCash,
+            AmountTransfer = amountTransfer,
+            AmountCard = amountCard,
             AmountFiado = amountFiado,
-            Items = cart.Select(i => new CreateSaleItemRequest { ProductId = i.ProductId, Quantity = i.Quantity }).ToList()
+            Items = cart.Select(i => new CreateSaleItemRequest 
+            { 
+                ProductId = i.ProductId, 
+                Quantity = i.Quantity,
+                Discount = i.Discount
+            }).ToList()
         };
 
         try
@@ -131,9 +142,6 @@ public class SalesController : Controller
         return View(sale);
     }
 
-    // ------------------------------------------------------------
-    // Privados
-    // ------------------------------------------------------------
     private async Task<PosViewModel> BuildPosViewModelAsync(string? error, CancellationToken cancellationToken, string? searchTerm = null)
     {
         var products = string.IsNullOrWhiteSpace(searchTerm)

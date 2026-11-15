@@ -55,10 +55,14 @@ public class SaleService : ISaleService
         {
             SaleNumber = saleNumber,
             CreatedAt = nowUtc,
-            PaymentMethod = request.PaymentMethod,
             CashSessionId = activeSession.Id,
             UserId = userId,
             CustomerId = customer?.Id,
+            
+            // Asignar Pagos
+            AmountCash = request.AmountCash,
+            AmountTransfer = request.AmountTransfer,
+            AmountCard = request.AmountCard,
             AmountFiado = request.AmountFiado
         };
 
@@ -73,22 +77,24 @@ public class SaleService : ISaleService
             if (!product.IsActive)
                 throw new InvalidOperationException($"El producto '{product.Name}' no esta activo.");
 
-            sale.AddItem(product, itemRequest.Quantity);
+            // Agregamos con el posible descuento
+            sale.AddItem(product, itemRequest.Quantity, itemRequest.Discount);
             
             await _inventoryService.RegisterMovementAsync(product, InventoryMovementType.Sale, -itemRequest.Quantity, product.Cost, saleNumber, cancellationToken: cancellationToken);
         }
 
-        // --- VALIDACIÓN AQUÍ ---
-        // Se hace después del bucle para que sale.Total ya tenga el valor sumado de todos los items
-        if (request.AmountFiado > sale.Total)
-            throw new InvalidOperationException("El monto fiado no puede ser mayor al total de la venta.");
-        // -----------------------
+        // VALIDAR QUE LOS PAGOS CUADREN
+        decimal totalPaid = sale.AmountCash + sale.AmountTransfer + sale.AmountCard + sale.AmountFiado;
+        if (Math.Abs(totalPaid - sale.Total) > 0.01m)
+        {
+            throw new InvalidOperationException($"La suma de los pagos ({totalPaid:C2}) no coincide con el total de la venta ({sale.Total:C2}).");
+        }
 
         await _saleRepository.AddAsync(sale, cancellationToken);
         
-        if (request.AmountFiado > 0 && customer != null)
+        if (sale.AmountFiado > 0 && customer != null)
         {
-            var receivable = new AccountsReceivable(sale, customer.Id, request.AmountFiado);
+            var receivable = new AccountsReceivable(sale, customer.Id, sale.AmountFiado);
             await _receivableRepository.AddAsync(receivable, cancellationToken);
         }
 
@@ -134,14 +140,21 @@ public class SaleService : ISaleService
             SaleNumber = sale.SaleNumber,
             CreatedAt = sale.CreatedAt,
             Total = sale.Total,
-            PaymentMethod = sale.PaymentMethod,
+            
+            // NUEVO: Mapeo de los pagos mixtos
+            AmountCash = sale.AmountCash,
+            AmountTransfer = sale.AmountTransfer,
+            AmountCard = sale.AmountCard,
+            AmountFiado = sale.AmountFiado,
+            
             Items = sale.Items.Select(i => new SaleItemDto
             {
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                Subtotal = i.Subtotal
+                Discount = i.Discount,
+                Subtotal = i.Subtotal,
             }).ToList()
         };
     }

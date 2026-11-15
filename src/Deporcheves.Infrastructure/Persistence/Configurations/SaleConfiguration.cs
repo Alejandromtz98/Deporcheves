@@ -9,7 +9,6 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
     public void Configure(EntityTypeBuilder<Sale> builder)
     {
         builder.ToTable("Sales");
-
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.SaleNumber)
@@ -19,34 +18,28 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.HasIndex(s => s.SaleNumber)
             .IsUnique();
 
-        builder.Property(s => s.CreatedAt)
-            .IsRequired();
+        builder.Property(s => s.CreatedAt).IsRequired();
+        builder.Property(s => s.Total).HasColumnType("decimal(18,2)").IsRequired();
 
-        builder.Property(s => s.Total)
-            .HasColumnType("decimal(18,2)")
-            .IsRequired();
+        // NUEVOS CAMPOS DE PAGOS
+        builder.Property(s => s.AmountCash).HasColumnType("decimal(18,2)").IsRequired();
+        builder.Property(s => s.AmountTransfer).HasColumnType("decimal(18,2)").IsRequired();
+        builder.Property(s => s.AmountCard).HasColumnType("decimal(18,2)").IsRequired();
+        builder.Property(s => s.AmountFiado).HasColumnType("decimal(18,2)").IsRequired();
 
-        builder.Property(s => s.PaymentMethod)
-            .HasConversion<int>()
-            .IsRequired();
+        // Relación con CashSession
+        builder.HasOne(s => s.CashSession)
+            .WithMany()
+            .HasForeignKey(s => s.CashSessionId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // Relacion uno-a-muchos con SaleItem.
-        // La navegacion se accede mediante el backing field _items.
+        // Relación con Items
         builder.HasMany(s => s.Items)
             .WithOne(i => i.Sale)
             .HasForeignKey(i => i.SaleId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(s => s.User)
-            .WithMany()
-            .HasForeignKey(s => s.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.Navigation(s => s.Items)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
-            builder.HasOne(s => s.CashSession)
-            .WithMany()
-            .HasForeignKey(s => s.CashSessionId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

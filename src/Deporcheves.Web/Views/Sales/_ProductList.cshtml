@@ -1,0 +1,44 @@
+@model Deporcheves.Web.Models.PosViewModel
+
+<table class="table table-sm table-hover align-middle">
+    <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th class="text-center" style="width: 80px;">Cant.</th>
+            <th class="text-center" style="width: 90px;">Desc. ($)</th>
+            <th class="text-center" style="width: 60px;">Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Products.Any())
+        {
+            <tr><td colspan="7" class="text-center text-muted py-3">No se encontraron productos.</td></tr>
+        }
+        @foreach (var product in Model.Products)
+        {
+            var formId = $"addForm_{product.Id}";
+            <tr>
+                <td>@product.Sku</td>
+                <td>@product.Name</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>@product.Stock</td>
+                <td>
+                    <input type="number" form="@formId" name="quantity" value="1" min="1" max="@product.Stock" class="form-control form-control-sm text-center" title="Cantidad" />
+                </td>
+                <td>
+                    <input type="number" form="@formId" name="discount" value="0" min="0" step="0.01" class="form-control form-control-sm text-center" title="Descuento $" />
+                </td>
+                <td>
+                    <!-- Formulario invisible por fila para enviar los datos -->
+                    <form asp-action="AddItem" method="post" id="@formId" class="d-none">
+                        <input type="hidden" name="productId" value="@product.Id" />
+                    </form>
+                    <button type="submit" form="@formId" class="btn btn-sm btn-primary w-100">+</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

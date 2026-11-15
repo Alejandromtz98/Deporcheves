@@ -61,13 +61,14 @@ public class CashService : ICashService
         return await BuildReportAsync(session, cancellationToken);
     }
 
-    private async Task<CashReportDto> BuildReportAsync(CashSession session, CancellationToken cancellationToken)
+        private async Task<CashReportDto> BuildReportAsync(CashSession session, CancellationToken cancellationToken)
     {
         var sales = await _saleRepository.GetByCashSessionIdAsync(session.Id, cancellationToken);
 
-        var cashSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Cash).Sum(s => s.Total - s.AmountFiado);
-        var cardSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Card).Sum(s => s.Total - s.AmountFiado);
-        var transferSales = sales.Where(s => s.PaymentMethod == PaymentMethod.Transfer).Sum(s => s.Total - s.AmountFiado);
+        // Con el nuevo modelo de pagos mixtos, sumamos los montos individuales
+        var cashSales = sales.Sum(s => s.AmountCash);
+        var cardSales = sales.Sum(s => s.AmountCard);
+        var transferSales = sales.Sum(s => s.AmountTransfer);
 
         var totalExpenses = session.Movements
             .Where(m => m.Type == CashMovementType.Expense).Sum(m => m.Amount);
@@ -76,6 +77,7 @@ public class CashService : ICashService
         var totalIncomes = session.Movements
             .Where(m => m.Type == CashMovementType.Income).Sum(m => m.Amount);
 
+        // Efectivo esperado = Fondo + Ventas Efectivo + Cobros CxC - Gastos - Retiros
         var expectedCash = session.OpeningCash + cashSales + totalIncomes - totalExpenses - totalWithdrawals;
 
         return new CashReportDto
@@ -89,10 +91,10 @@ public class CashService : ICashService
             TransferSales = transferSales,
             TotalExpenses = totalExpenses,
             TotalWithdrawals = totalWithdrawals,
+            TotalIncomes = totalIncomes,
             ExpectedCash = expectedCash,
             ClosingCash = session.ClosingCash,
-            Difference = session.Difference,
-            TotalIncomes = totalIncomes
+            Difference = session.Difference
         };
     }
 }

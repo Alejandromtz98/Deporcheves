@@ -607,8 +607,17 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("AmountCard")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountCash")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("AmountFiado")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountTransfer")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("CashSessionId")
                         .HasColumnType("integer");
@@ -617,9 +626,6 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PaymentMethod")
                         .HasColumnType("integer");
 
                     b.Property<string>("SaleNumber")
@@ -655,6 +661,9 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
@@ -668,9 +677,6 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("SaleId")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
@@ -908,8 +914,7 @@ namespace Deporcheves.Infrastructure.Persistence.Migrations
 
                     b.HasOne("Deporcheves.Domain.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("UserId");
 
                     b.Navigation("CashSession");
 

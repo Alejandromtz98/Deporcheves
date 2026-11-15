@@ -60,10 +60,9 @@ public class FinanceController : Controller
         }
         return RedirectToAction(nameof(FixedCosts));
     }
-    [HttpGet]
+        [HttpGet]
     public async Task<IActionResult> ExportCsv(DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken)
     {
-        // Reutilizamos la misma lógica de fechas del Dashboard
         var now = DateTime.UtcNow;
         var start = startDate.HasValue 
             ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc) 
@@ -83,16 +82,19 @@ public class FinanceController : Controller
         var sales = await _saleRepository.GetByDateRangeAsync(start, end, cancellationToken);
 
         var builder = new System.Text.StringBuilder();
-        // Cabeceras del CSV
-        builder.AppendLine("Ticket,Fecha,MetodoPago,Total");
+        
+        // NUEVAS CABECERAS PARA PAGOS MIXTOS
+        builder.AppendLine("Ticket,Fecha,Efectivo,Transferencia,Tarjeta,Fiado,Total");
 
-        // Filas
         foreach (var sale in sales)
         {
-            // Usamos InvariantCulture para que el separador decimal sea el punto (.) 
-            // y evitar problemas al abrir el CSV en Excel.
-            var totalStr = sale.Total.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            builder.AppendLine($"{sale.SaleNumber},{sale.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm},{sale.PaymentMethod},{totalStr}");
+            var cash = sale.AmountCash.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var transfer = sale.AmountTransfer.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var card = sale.AmountCard.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var fiado = sale.AmountFiado.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var total = sale.Total.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            builder.AppendLine($"{sale.SaleNumber},{sale.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm},{cash},{transfer},{card},{fiado},{total}");
         }
 
         var bytes = System.Text.Encoding.UTF8.GetBytes(builder.ToString());

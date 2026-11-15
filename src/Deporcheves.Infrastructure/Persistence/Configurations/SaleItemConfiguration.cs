@@ -9,7 +9,6 @@ public class SaleItemConfiguration : IEntityTypeConfiguration<SaleItem>
     public void Configure(EntityTypeBuilder<SaleItem> builder)
     {
         builder.ToTable("SaleItems");
-
         builder.HasKey(i => i.Id);
 
         builder.Property(i => i.ProductName)
@@ -23,14 +22,14 @@ public class SaleItemConfiguration : IEntityTypeConfiguration<SaleItem>
             .HasColumnType("decimal(18,2)")
             .IsRequired();
 
-        builder.Property(i => i.Subtotal)
+        // NUEVO: Configuramos el descuento
+        builder.Property(i => i.Discount)
             .HasColumnType("decimal(18,2)")
             .IsRequired();
 
-        // Relacion con Product. No se elimina en cascada: si se intentara
-        // borrar un producto con ventas asociadas, la operacion falla.
-        // En la practica los productos no se borran (soft delete), por lo que
-        // esta restriccion no se activa, pero es correcta como red de seguridad.
+        // NUEVO: Ignoramos la propiedad calculada para que EF Core no intente mapearla
+        builder.Ignore(i => i.Subtotal);
+
         builder.HasOne<Product>()
             .WithMany()
             .HasForeignKey(i => i.ProductId)

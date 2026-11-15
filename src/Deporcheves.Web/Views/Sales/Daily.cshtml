@@ -1,7 +1,5 @@
 @model IReadOnlyList<Deporcheves.Application.Dtos.Sales.SaleDto>
-@{
-    ViewData["Title"] = "Ventas del dia";
-}
+@{ ViewData["Title"] = "Ventas del dia"; }
 
 <h1>Ventas del dia</h1>
 
@@ -13,7 +11,7 @@ else
 {
     <table class="table table-striped">
         <thead>
-            <tr><th>Numero</th><th>Hora</th><th>Metodo</th><th>Total</th><th></th></tr>
+            <tr><th>Numero</th><th>Hora</th><th>Desglose de Pago</th><th>Total</th><th></th></tr>
         </thead>
         <tbody>
             @foreach (var sale in Model)
@@ -21,7 +19,12 @@ else
                 <tr>
                     <td>@sale.SaleNumber</td>
                     <td>@sale.CreatedAt.ToLocalTime().ToString("HH:mm")</td>
-                    <td>@sale.PaymentMethod</td>
+                    <td>
+                        @if(sale.AmountCash > 0) { <span class="badge bg-success">Efe: @sale.AmountCash.ToString("C")</span> }
+                        @if(sale.AmountTransfer > 0) { <span class="badge bg-info text-dark">Trans: @sale.AmountTransfer.ToString("C")</span> }
+                        @if(sale.AmountCard > 0) { <span class="badge bg-primary">Tarj: @sale.AmountCard.ToString("C")</span> }
+                        @if(sale.AmountFiado > 0) { <span class="badge bg-danger">Fiado: @sale.AmountFiado.ToString("C")</span> }
+                    </td>
                     <td>@sale.Total.ToString("C")</td>
                     <td><a asp-action="Details" asp-route-id="@sale.Id">Detalle</a></td>
                 </tr>

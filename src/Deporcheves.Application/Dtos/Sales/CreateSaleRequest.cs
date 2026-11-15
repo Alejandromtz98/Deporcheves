@@ -1,13 +1,15 @@
-using Deporcheves.Domain.Enums;
-
 namespace Deporcheves.Application.Dtos.Sales;
 
 public class CreateSaleRequest
 {
-    public PaymentMethod PaymentMethod { get; set; }
     public List<CreateSaleItemRequest> Items { get; set; } = new();
     
-    // NUEVOS CAMPOS PARA EL FIADO
+    // PAGOS MIXTOS (Reemplazan al PaymentMethod único)
+    public decimal AmountCash { get; set; }
+    public decimal AmountTransfer { get; set; }
+    public decimal AmountCard { get; set; }
+    public decimal AmountFiado { get; set; }
+
+    // Cliente para el fiado
     public int? CustomerId { get; set; }
-    public decimal AmountFiado { get; set; } 
 }

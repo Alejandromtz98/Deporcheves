@@ -1,5 +1,3 @@
-using Deporcheves.Domain.Enums;
-
 namespace Deporcheves.Application.Dtos.Sales;
 
 public class SaleDto
@@ -8,6 +6,12 @@ public class SaleDto
     public string SaleNumber { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public decimal Total { get; set; }
-    public PaymentMethod PaymentMethod { get; set; }
+    
+    // NUEVOS CAMPOS DE PAGO
+    public decimal AmountCash { get; set; }
+    public decimal AmountTransfer { get; set; }
+    public decimal AmountCard { get; set; }
+    public decimal AmountFiado { get; set; }
+
     public List<SaleItemDto> Items { get; set; } = new();
 }
